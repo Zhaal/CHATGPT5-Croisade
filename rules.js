@@ -891,10 +891,10 @@ const factionUnits = {
 // NOUVEL AJOUT : Règles de croisade spécifiques aux Démons du Chaos (Légion de l'Ombre)
 const chaosDaemonsCrusadeRules = {
     legionOfShadowEnhancements: [
-        { name: "Ombres Bondissantes", desc: "Les figurines de l’unité du porteur ont l’aptitude Éclaireurs 9”.", cost: 1, crusadePointCost: 1 },
-        { name: "Manteau d'Obscurité (Aura)", desc: "Tant qu’une unité ennemie est à Portée d’Engagement de l’unité du porteur, soustrayez 1 à la caractéristique de Contrôle d’Objectif des figurines de l’unité ennemie.", cost: 1, crusadePointCost: 1 },
-        { name: "Se Fondre dans les Ténèbres", desc: "À la fin de la phase de Combat, si l’unité du porteur a détruit une ou plusieurs unités ennemies à cette phase et n’est à Portée d’Engagement d’aucune unité ennemie, vous pouvez retirer l’unité du porteur du champ de bataille et la placer en Réserve Stratégique.", cost: 1, crusadePointCost: 1 },
-        { name: "Malveillance Incarnée", desc: "Au début de la phase de Combat, choisissez 1 unité ennemie à Portée d’Engagement de l’unité du porteur et jetez 1D6 : sur 2-5, l’unité ennemie subit D3 blessures mortelles ; sur 6, l’unité ennemie subit 3 blessures mortelles.", cost: 1, crusadePointCost: 1 }
+        { name: "Ombres Bondissantes", desc: "Les figurines de l’unité du porteur ont l’aptitude Éclaireurs 9”.", cost: 25, crusadePointCost: 1 },
+        { name: "Manteau d'Obscurité (Aura)", desc: "Tant qu’une unité ennemie est à Portée d’Engagement de l’unité du porteur, soustrayez 1 à la caractéristique de Contrôle d’Objectif des figurines de l’unité ennemie.", cost: 20, crusadePointCost: 1 },
+        { name: "Se Fondre dans les Ténèbres", desc: "À la fin de la phase de Combat, si l’unité du porteur a détruit une ou plusieurs unités ennemies à cette phase et n’est à Portée d’Engagement d’aucune unité ennemie, vous pouvez retirer l’unité du porteur du champ de bataille et la placer en Réserve Stratégique.", cost: 30, crusadePointCost: 1 },
+        { name: "Malveillance Incarnée", desc: "Au début de la phase de Combat, choisissez 1 unité ennemie à Portée d’Engagement de l’unité du porteur et jetez 1D6 : sur 2-5, l’unité ennemie subit D3 blessures mortelles ; sur 6, l’unité ennemie subit 3 blessures mortelles.", cost: 25, crusadePointCost: 1 }
     ]
 };
 
@@ -1557,4 +1557,5 @@ const factionDetachments = {
         { group: "Vaisseaux de la Colère", name: "Portails vers la Gloire", cost: 25 },
         { group: "Vaisseaux de la Colère", name: "Vox Diabolus", cost: 20 }
     ]
+
 };
