@@ -271,7 +271,7 @@ const populateUpgradeSelectors = () => {
         const legionSelect = document.getElementById('legion-of-shadow-select');
         legionSelect.innerHTML = '<option value="">Choisir une optimisation...</option>';
         chaosDaemonsCrusadeRules.legionOfShadowEnhancements.forEach(enhancement => {
-            legionSelect.innerHTML += `<option value="${enhancement.name}" data-cost="${enhancement.cost}" data-cp-cost="${enhancement.crusadePointCost}">${enhancement.name}</option>`;
+            legionSelect.innerHTML += `<option value="${enhancement.name}" data-cost="${enhancement.cost}" data-cp-cost="${enhancement.crusadePointCost}">${enhancement.name} (${enhancement.cost} PR)</option>`;
         });
     } else {
         legionOfShadowSection.classList.add('hidden');
