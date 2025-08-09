@@ -21,9 +21,15 @@ const campaignRuleDifferences = {
             },
             {
                 ruleName: "Grande Peste",
-                programImplementation: "Le système est fortement simplifié. Le joueur 'infecte' une planète, ce qui lui donne des statistiques. Le programme calcule un 'Total de Peste' en additionnant les stats du monde et les stats de la peste du joueur. Si ce total atteint 7+, le joueur peut dépenser 1 PR pour tenter de 'Concrétiser la Peste' via un jet de dé. Le suivi complexe de la Voie de la Contagion et les Bénédictions de Nurgle ne sont pas automatisés.",
-                officialRule: "Un système complexe de suivi ('Voie de la Contagion') où les caractéristiques d'un monde et de la peste évoluent après chaque bataille. L'objectif est d'atteindre un total de 7 pour chaque paire de caractéristiques pour réussir à 'Concocter une Peste' et gagner des récompenses basées sur un 'Score d'Adéquation', incluant des 'Bénédictions de Nurgle' permanentes.",
+                programImplementation: "Le système est fortement simplifié. Le joueur 'infecte' une planète, ce qui lui donne des statistiques. Le programme calcule un 'Total de Peste' en additionnant les stats du monde et celles de la peste du joueur. Si ce total atteint 7+, le joueur peut dépenser 1 PR pour tenter de 'Concrétiser la Peste' via un jet de dé. La progression détaillée de la Voie de la Contagion et le calcul du Score d'Adéquation ne sont pas automatisés.",
+                officialRule: "Un système complexe de suivi ('Voie de la Contagion') où les caractéristiques d'un monde et de la peste évoluent après chaque bataille. Chaque paire de caractéristiques doit atteindre un total exact de 7 pour réussir à 'Concocter une Peste' et déterminer un 'Score d'Adéquation' qui offre diverses récompenses.",
                 comparison: "🔴 **Fortement simplifié.** Le programme conserve le thème de la corruption planétaire mais remplace la micro-gestion complexe de la 'Voie de la Contagion' par un mécanisme de jet de dé unique et plus direct. C'est une adaptation majeure pour la jouabilité."
+            },
+            {
+                ruleName: "Bénédictions de Nurgle",
+                programImplementation: "Les bénédictions permanentes sont listées dans les données et peuvent être notées pour chaque armée. Leur obtention, leurs effets et l'ajout du point de Croisade correspondant doivent être gérés manuellement.",
+                officialRule: "Lorsque le Score d'Adéquation d'une Grande Peste est atteint, l'armée gagne une Bénédiction de Nurgle permanente. Chaque bénédiction est unique, ajoute 1 point de Croisade et ne peut être obtenue qu'une seule fois.",
+                comparison: "🟡 **Implémentation partielle.** Les bénédictions sont disponibles comme référence, mais le suivi de leur acquisition reste à la charge du joueur."
             },
             {
                 ruleName: "Pathogènes Alchimiques",
