@@ -1,5 +1,4 @@
-// Function Netlify (CommonJS) — sauvegarde en ligne
-// Utilise Netlify Blobs via import() dynamique + shim d'export
+// CommonJS + import ESM + CORS + contexte explicite (siteID/token)
 
 function corsHeaders() {
   return {
@@ -8,7 +7,6 @@ function corsHeaders() {
     "Access-Control-Allow-Headers": "Content-Type",
   };
 }
-
 function respond(statusCode, json) {
   return {
     statusCode,
@@ -18,46 +16,32 @@ function respond(statusCode, json) {
 }
 
 exports.handler = async (event) => {
-  // CORS preflight
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: corsHeaders() };
-  }
-  if (event.httpMethod !== "POST") {
-    return respond(405, { error: "Method Not Allowed" });
-  }
+  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: corsHeaders() };
+  if (event.httpMethod !== "POST") return respond(405, { error: "Method Not Allowed" });
 
-  const key =
-    (event.queryStringParameters && event.queryStringParameters.key) ||
-    "default";
+  const key = (event.queryStringParameters && event.queryStringParameters.key) || "default";
 
   try {
-    // Import ESM robuste quelle que soit la forme d’export
     const mod = await import("@netlify/blobs");
-    const getStore = mod.getStore || (mod.default && mod.default.getStore);
-    if (!getStore) {
-      throw new Error(
-        "Netlify Blobs: getStore introuvable. Mets à jour @netlify/blobs (ex: ^7) ou garde ce shim."
-      );
-    }
+    const getStore = mod.getStore || mod.default?.getStore;
+    if (!getStore) throw new Error("Netlify Blobs: getStore introuvable.");
 
-    const store = getStore("campaigns");
+    const siteID = process.env.BLOBS_SITE_ID;
+    const token  = process.env.BLOBS_TOKEN;
+    console.log("saveCampaign env:", !!siteID, !!token); // doit afficher true true
+    if (!siteID || !token) throw new Error("BLOBS_SITE_ID ou BLOBS_TOKEN manquant(s).");
 
-    // On accepte uniquement du JSON (comme ton front)
+    const store = getStore("campaigns", { siteID, token });
+
     const body =
-      event.headers["content-type"] &&
-      event.headers["content-type"].includes("application/json")
-        ? event.body || "{}"
+      event.headers["content-type"]?.includes("application/json")
+        ? (event.body || "{}")
         : "{}";
 
-    // Écriture brute (string JSON). Option: store.setJSON(key, JSON.parse(body))
-    await store.set(key, body);
-
+    await store.set(key, body); // ou store.setJSON(key, JSON.parse(body))
     return respond(200, { success: true, message: "saved" });
   } catch (err) {
     console.error("saveCampaign error:", err);
-    return respond(500, {
-      error: "save failed",
-      details: String((err && err.message) || err),
-    });
+    return respond(500, { error: "save failed", details: String(err?.message || err) });
   }
 };
