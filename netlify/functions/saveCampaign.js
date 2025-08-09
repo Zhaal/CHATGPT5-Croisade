@@ -37,8 +37,7 @@ exports.handler = async (event) => {
       event.headers["content-type"]?.includes("application/json")
         ? (event.body || "{}")
         : "{}";
-
-    await store.set(key, body); // ou store.setJSON(key, JSON.parse(body))
+    await store.setJSON(key, JSON.parse(body));
     return respond(200, { success: true, message: "saved" });
   } catch (err) {
     console.error("saveCampaign error:", err);
