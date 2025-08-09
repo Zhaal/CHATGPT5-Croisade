@@ -27,9 +27,9 @@ const campaignRuleDifferences = {
             },
             {
                 ruleName: "Bénédictions de Nurgle",
-                programImplementation: "Les bénédictions permanentes sont listées dans les données et peuvent être notées pour chaque armée. Leur obtention, leurs effets et l'ajout du point de Croisade correspondant doivent être gérés manuellement.",
-                officialRule: "Lorsque le Score d'Adéquation d'une Grande Peste est atteint, l'armée gagne une Bénédiction de Nurgle permanente. Chaque bénédiction est unique, ajoute 1 point de Croisade et ne peut être obtenue qu'une seule fois.",
-                comparison: "🟡 **Implémentation partielle.** Les bénédictions sont disponibles comme référence, mais le suivi de leur acquisition reste à la charge du joueur."
+                programImplementation: "Le programme liste les bénédictions temporaires de la Voie de la Contagion (Œil de Nurgle, etc.) ainsi que les bénédictions permanentes. Leur obtention, leurs effets et l'ajout du point de Croisade correspondant doivent être gérés manuellement.",
+                officialRule: "Après trois gains consécutifs d'Adéquation, on choisit une bénédiction parmi cinq effets temporaires. Lorsque le Score d'Adéquation d'une Grande Peste est atteint, l'armée gagne une bénédiction permanente unique qui ajoute 1 point de Croisade.",
+                comparison: "🟡 **Implémentation partielle.** Le programme fournit une référence complète mais laisse la tenue des progrès et l'application des effets au joueur."
             },
             {
                 ruleName: "Pathogènes Alchimiques",
