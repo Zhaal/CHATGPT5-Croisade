@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const planetTypeForm = document.getElementById('planet-type-form');
     const backToListBtn = document.getElementById('back-to-list-btn');
     const backToSystemBtn = document.getElementById('back-to-system-btn');
+    const toggleAdminBtn = document.getElementById('toggle-admin-btn');
     const exportBtn = document.getElementById('export-btn');
     const importBtn = document.getElementById('import-btn');
     const importFile = document.getElementById('import-file');
@@ -81,7 +82,27 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => renderPlanetarySystem(currentlyViewedSystemId), 50);
         }
     });
-    
+
+    if (toggleAdminBtn) {
+        toggleAdminBtn.addEventListener('click', () => {
+            if (!isAdminMode) {
+                const pwd = prompt('Mot de passe admin:');
+                if (pwd !== 'warp') {
+                    showNotification('Mot de passe incorrect.', 'error');
+                    return;
+                }
+                isAdminMode = true;
+                showNotification('Mode Administrateur activé.', 'success');
+            } else {
+                isAdminMode = false;
+                showNotification('Mode Administrateur désactivé.', 'info');
+            }
+            updateAdminModeUI();
+        });
+    }
+
+    updateAdminModeUI();
+
     function handleModalClose(modal) {
         closeModal(modal);
     
@@ -250,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('player-detail-view').addEventListener('click', (e) => {
         const button = e.target.closest('.tally-btn');
-        if (!button || activePlayerIndex === -1) return;
+        if (!button || activePlayerIndex === -1 || !isAdminMode) return;
         const player = campaignData.players[activePlayerIndex];
         const action = button.dataset.action;
         if (button.id === 'increase-supply-limit-btn') return;
