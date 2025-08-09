@@ -710,8 +710,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const actionsContainer = document.getElementById('planet-actions-container');
-        actionsContainer.innerHTML = ''; 
+        actionsContainer.innerHTML = '';
         const viewingPlayer = campaignData.players.find(p => p.id === mapViewingPlayerId);
+
+        // Afficher la force de défense actuelle de la planète
+        const defenseInfo = document.createElement('div');
+        defenseInfo.className = 'info-box';
+        defenseInfo.innerHTML = `<strong>Défense :</strong> <span>${planet.defense || 0} pts</span>`;
+        actionsContainer.appendChild(defenseInfo);
+
+        // Ajouter un bouton permettant de diviser par deux la défense pour 1 PR
+        if (planet.defense > 0) {
+            const halveBtn = document.createElement('button');
+            halveBtn.type = 'button';
+            halveBtn.className = 'btn-secondary';
+            halveBtn.textContent = 'Saboter les Défenses (1 PR)';
+            halveBtn.style.width = '100%';
+            halveBtn.style.marginTop = '10px';
+            halveBtn.onclick = halvePlanetDefense;
+            actionsContainer.appendChild(halveBtn);
+        }
         
         // ====================== DÉBUT DE LA CORRECTION ======================
         updatePlanetModalForDeathGuard(planet, viewingPlayer);
