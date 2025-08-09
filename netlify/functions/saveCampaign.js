@@ -1,5 +1,4 @@
-const fs = require('fs');
-const path = require('path');
+const { getStore } = require('@netlify/blobs');
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -10,22 +9,18 @@ exports.handler = async (event) => {
   }
 
   const key = event.queryStringParameters && event.queryStringParameters.key ? event.queryStringParameters.key : 'default';
-  const dataDir = path.resolve(__dirname, '../data');
-  const filePath = path.join(dataDir, `${key}.json`);
 
   try {
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(filePath, event.body || '{}', 'utf8');
+    const store = getStore('campaigns');
+    await store.set(key, event.body || '{}');
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true })
+      body: JSON.stringify({ success: true, message: 'Campaign saved to persistent store' })
     };
   } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to save data', details: err.message })
+      body: JSON.stringify({ error: 'Failed to save data to persistent store', details: err.message })
     };
   }
 };
