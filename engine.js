@@ -31,6 +31,8 @@ let mapViewingPlayerId = null;
 let selectedSystemOnMapId = null; // NEW: Tracks selected system for map actions
 let currentMapScale = 1;
 
+let isOnlineSaveAvailable = false;
+
 let isPanning = false;
 let wasDragged = false;
 let startX, scrollLeftStart;
@@ -805,7 +807,34 @@ const handleImport = (event) => {
 
 };
 
+const checkOnlineSaveAvailability = async () => {
+    try {
+        const response = await fetch('/.netlify/functions/ping');
+        if (!response.ok) throw new Error('Network error');
+        const info = await response.json();
+        const envOk = info?.env?.BLOBS_SITE_ID && info?.env?.BLOBS_TOKEN;
+        const storeOk = info?.store || info?.storeAvailable;
+        if (envOk || storeOk) {
+            isOnlineSaveAvailable = true;
+        } else {
+            throw new Error('Netlify store unavailable');
+        }
+    } catch (err) {
+        console.error('Netlify ping failed:', err);
+        isOnlineSaveAvailable = false;
+        showNotification('Sauvegarde en ligne indisponible.', 'warning');
+        const saveBtn = document.getElementById('save-online-btn');
+        const loadBtn = document.getElementById('load-online-btn');
+        if (saveBtn) saveBtn.disabled = true;
+        if (loadBtn) loadBtn.disabled = true;
+    }
+};
+
 const saveDataOnline = async () => {
+    if (!isOnlineSaveAvailable) {
+        showNotification('Sauvegarde en ligne indisponible.', 'error');
+        return;
+    }
     const key = prompt("Identifiant de sauvegarde en ligne :");
     if (!key) return;
     try {
@@ -823,6 +852,10 @@ const saveDataOnline = async () => {
 };
 
 const loadDataOnline = async () => {
+    if (!isOnlineSaveAvailable) {
+        showNotification('Sauvegarde en ligne indisponible.', 'error');
+        return;
+    }
     const key = prompt("Identifiant de la sauvegarde à charger :");
     if (!key) return;
     try {

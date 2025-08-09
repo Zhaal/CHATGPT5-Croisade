@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     importFile.addEventListener('change', handleImport);
     if (saveOnlineBtn) saveOnlineBtn.addEventListener('click', saveDataOnline);
     if (loadOnlineBtn) loadOnlineBtn.addEventListener('click', loadDataOnline);
+    checkOnlineSaveAvailability();
     if (fullscreenBtn) {
         fullscreenBtn.addEventListener('click', () => {
             if (!document.fullscreenElement) {
