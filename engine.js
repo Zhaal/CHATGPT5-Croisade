@@ -31,6 +31,8 @@ let mapViewingPlayerId = null;
 let selectedSystemOnMapId = null; // NEW: Tracks selected system for map actions
 let currentMapScale = 1;
 
+let isAdminMode = false;
+
 let isPanning = false;
 let wasDragged = false;
 let startX, scrollLeftStart;
@@ -69,6 +71,16 @@ function showNotification(message, type = 'info', duration = 5000) {
         clearTimeout(timer);
         hideNotif();
     });
+}
+
+function updateAdminModeUI() {
+    document.querySelectorAll('.tally-btn').forEach(btn => {
+        btn.disabled = !isAdminMode;
+    });
+    const toggleBtn = document.getElementById('toggle-admin-btn');
+    if (toggleBtn) {
+        toggleBtn.textContent = isAdminMode ? 'Mode Utilisateur' : 'Mode Admin';
+    }
 }
 
 /**

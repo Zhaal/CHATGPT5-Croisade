@@ -139,6 +139,7 @@ const renderPlayerDetail = () => {
     document.getElementById('goals-notes').value = player.goalsNotes || '';
 
     renderOrderOfBattle();
+    if (typeof updateAdminModeUI === 'function') updateAdminModeUI();
 };
 
 
