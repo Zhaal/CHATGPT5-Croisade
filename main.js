@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportBtn = document.getElementById('export-btn');
     const importBtn = document.getElementById('import-btn');
     const importFile = document.getElementById('import-file');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
     const resetCampaignBtn = document.getElementById('reset-campaign-btn');
     mapModal = document.getElementById('map-modal');
     const mapContainer = document.getElementById('galactic-map-container');
@@ -54,6 +55,19 @@ document.addEventListener('DOMContentLoaded', () => {
     exportBtn.addEventListener('click', handleExport);
     importBtn.addEventListener('click', () => importFile.click());
     importFile.addEventListener('change', handleImport);
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            fullscreenBtn.textContent = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran';
+        });
+    }
     backToListBtn.addEventListener('click', () => switchView('list'));
 
     backToSystemBtn.addEventListener('click', () => {
