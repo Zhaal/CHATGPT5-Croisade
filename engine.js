@@ -37,7 +37,7 @@ let startX, scrollLeftStart;
 let startY, scrollTopStart;
 
 const STEP_DISTANCE = 250;
-const GALAXY_SIZE = 4;
+const GALAXY_SIZE = 9;
 
 //======================================================================
 //  SYSTÈME DE NOTIFICATION, CONFIRMATION, LOG & MODALES
@@ -802,6 +802,7 @@ const handleImport = (event) => {
     };
     reader.readAsText(file);
     event.target.value = null; // Permet de ré-importer le même fichier
+
 };
 
 const saveDataOnline = async () => {
