@@ -113,7 +113,7 @@ const deathGuardCrusadeRules = {
     boonsOfNurgle: [
         { roll: "11", name: "Vitalité Fébrile", desc: "Ajoutez 1 à la caractéristique de Mouvement des figurines de l'unité de cette figurine." },
         { roll: "12", name: "Membres Sinueux", desc: "Ajoutez 1 aux jets d'Avance et de Charge pour le porteur de cette figurine." },
-        { roll: "13", name: "Tentacules Grouillants", desc: "Ajoutez 1 à la caractéristique d'Attaques (A) des armes de mêlée dont cette figurine est équipée." },
+        { roll: "13", name: "Tentacules Grouillantes", desc: "Ajoutez 1 à la caractéristique d'Attaques des armes de mêlée dont cette figurine est équipée." },
         { roll: "21", name: "Hideusement Enflé", desc: "Ajoutez 2 à la caractéristique de Points de vie (W) de cette figurine." },
         { roll: "22", name: "Insensibilité Lépreuse", desc: "Cette figurine a l'aptitude Insensible à la Douleur 5+." },
         { roll: "23", name: "Voile de Mouches", desc: "Les figurines de l'unité de cette figurine ont l'aptitude Discrétion." },
