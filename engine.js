@@ -803,3 +803,39 @@ const handleImport = (event) => {
     reader.readAsText(file);
     event.target.value = null; // Permet de ré-importer le même fichier
 };
+
+const saveDataOnline = async () => {
+    const key = prompt("Identifiant de sauvegarde en ligne :");
+    if (!key) return;
+    try {
+        const response = await fetch(`/.netlify/functions/saveCampaign?key=${encodeURIComponent(key)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(campaignData)
+        });
+        if (!response.ok) throw new Error('Network error');
+        showNotification("Sauvegarde en ligne réussie !", 'success');
+    } catch (err) {
+        console.error('Erreur sauvegarde en ligne :', err);
+        showNotification("Échec de la sauvegarde en ligne.", 'error');
+    }
+};
+
+const loadDataOnline = async () => {
+    const key = prompt("Identifiant de la sauvegarde à charger :");
+    if (!key) return;
+    try {
+        const response = await fetch(`/.netlify/functions/loadCampaign?key=${encodeURIComponent(key)}`);
+        if (!response.ok) throw new Error('Save not found');
+        const data = await response.json();
+        campaignData = data;
+        migrateData();
+        saveData();
+        renderPlayerList();
+        switchView('list');
+        showNotification("Chargement en ligne réussi !", 'success');
+    } catch (err) {
+        console.error('Erreur chargement en ligne :', err);
+        showNotification("Échec du chargement en ligne.", 'error');
+    }
+};

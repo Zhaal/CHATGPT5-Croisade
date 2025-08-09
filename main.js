@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportBtn = document.getElementById('export-btn');
     const importBtn = document.getElementById('import-btn');
     const importFile = document.getElementById('import-file');
+    const saveOnlineBtn = document.getElementById('save-online-btn');
+    const loadOnlineBtn = document.getElementById('load-online-btn');
     const fullscreenBtn = document.getElementById('fullscreen-btn');
     const resetCampaignBtn = document.getElementById('reset-campaign-btn');
     mapModal = document.getElementById('map-modal');
@@ -55,6 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
     exportBtn.addEventListener('click', handleExport);
     importBtn.addEventListener('click', () => importFile.click());
     importFile.addEventListener('change', handleImport);
+    if (saveOnlineBtn) saveOnlineBtn.addEventListener('click', saveDataOnline);
+    if (loadOnlineBtn) loadOnlineBtn.addEventListener('click', loadDataOnline);
     if (fullscreenBtn) {
         fullscreenBtn.addEventListener('click', () => {
             if (!document.fullscreenElement) {
