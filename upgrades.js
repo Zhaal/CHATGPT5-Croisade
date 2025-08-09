@@ -271,7 +271,7 @@ const populateUpgradeSelectors = () => {
         const legionSelect = document.getElementById('legion-of-shadow-select');
         legionSelect.innerHTML = '<option value="">Choisir une optimisation...</option>';
         chaosDaemonsCrusadeRules.legionOfShadowEnhancements.forEach(enhancement => {
-            legionSelect.innerHTML += `<option value="${enhancement.name}" data-cost="${enhancement.cost}" data-cp-cost="${enhancement.crusadePointCost}">${enhancement.name} (${enhancement.cost} PR)</option>`;
+            legionSelect.innerHTML += `<option value="${enhancement.name}" data-cost="${enhancement.cost}" data-cp-cost="${enhancement.crusadePointCost}">${enhancement.name} (${enhancement.cost} pts)</option>`;
         });
     } else {
         legionOfShadowSection.classList.add('hidden');
@@ -462,22 +462,37 @@ document.getElementById('add-sombreroche-relic-btn').addEventListener('click', a
 // CORRIGÉ : Cette fonction est maintenant gérée par le module de la faction (DeathGuard_module.js)
 // document.getElementById('add-nurgle-boon-btn').addEventListener('click', () => { ... });
 
-document.getElementById('add-legion-of-shadow-btn').addEventListener('click', () => {
+document.getElementById('add-legion-of-shadow-btn').addEventListener('click', async () => {
     const select = document.getElementById('legion-of-shadow-select');
     const selectedOption = select.options[select.selectedIndex];
+    if (!selectedOption || !selectedOption.value) return;
+
     const enhancementName = selectedOption.value;
-    if (!enhancementName) return;
+    const enhancementCost = parseInt(selectedOption.dataset.cost);
+    const cpCost = parseInt(selectedOption.dataset.cpCost) || 0;
 
     const enhancement = chaosDaemonsCrusadeRules.legionOfShadowEnhancements.find(e => e.name === enhancementName);
     if (!enhancement) return;
 
-    handleRpPurchase(enhancement.name, enhancement.cost, () => {
-        const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
+    const confirmText = `Voulez-vous ajouter l'Optimisation de l'Ombre <i>${enhancementName}</i> pour <b>${enhancementCost} pts</b> ?`;
+    if (await showConfirm("Ajouter une Optimisation", confirmText)) {
+        const player = campaignData.players[activePlayerIndex];
+        const unit = player.units[editingUnitIndex];
+
+        if (!unit.detachmentUpgrades) {
+            unit.detachmentUpgrades = [];
+        }
+        unit.detachmentUpgrades.push({ name: enhancementName, cost: enhancementCost });
+
         addUpgradeToUnitData(unit, 'unit-honours', enhancement.name, enhancement.desc, "Optimisation de l'Ombre: ");
 
-        unit.crusadePoints = (unit.crusadePoints || 0) + enhancement.crusadePointCost;
+        unit.crusadePoints = (unit.crusadePoints || 0) + cpCost;
         document.getElementById('unit-crusade-points').value = unit.crusadePoints;
 
+        saveData();
+        renderPlayerDetail();
+        showNotification(`Optimisation de l'Ombre "${enhancementName}" ajoutée !`, 'success');
+
         select.value = '';
-    });
+    }
 });
