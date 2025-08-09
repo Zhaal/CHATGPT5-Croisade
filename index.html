@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Crusade Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Nexus Crusade Tracker</h1>
+            <div class="campaign-controls">
+                <button id="export-btn">Exporter la Campagne (JSON)</button>
+                <button id="import-btn">Importer la Campagne (JSON)</button>
+                <input type="file" id="import-file" accept=".json" style="display: none;">
+            </div>
+            <p class="storage-warning">
+              ⚠️ **Attention :** Toutes les données sont sauvegardées localement dans votre navigateur.
+                Utilisez l'export pour créer des sauvegardes !
+            </p>
+            <div class="management-controls">
+                <button id="reset-campaign-btn" class="btn-danger">Explosion du Warp (Réinitialiser)</button>
+                </div>
+        </header>
+
+        <main id="player-list-view">
+            <h2>Joueurs de la Campagne</h2>
+            <div id="player-list">
+                </div>
+            <button id="add-player-btn" class="btn-primary">Ajouter un Joueur</button>
+        </main>
+
+        <section id="player-detail-view" class="hidden">
+            <div class="roster-header">
+                <h3>Crusade Force Roster</h3>
+                <span>
+                    <button id="back-to-system-btn" class="hidden" style="margin-right: 10px;">&larr; Retour au système</button>
+                    <button id="back-to-list-btn">&larr; Retour à la liste</button>
+                </span>
+            </div>
+            <div class="player-info-grid">
+                <div class="info-box"><strong>Joueur:</strong> <span id="player-name-display"></span></div>
+                <div class="info-box"><strong>Faction:</strong> <span id="player-faction-display"></span></div>
+                <div class="info-box"><strong>Faction de Croisade:</strong> <input type="text" id="crusade-faction" placeholder="Ex: Imperium"></div>
+                <div class="info-box">
+                    <strong>Points de Réquisition:</strong>
+                    <span id="pr-points" class="stat-value"></span> RP
+                    <button class="tally-btn" data-action="decrease-rp">-</button>
+                    <button class="tally-btn" data-action="increase-rp">+</button>
+                </div>
+                <div class="info-box" id="free-probes-box">
+                    <strong>Sondes Gratuites:</strong>
+                    <span id="free-probes-points" class="stat-value">0</span>
+                    <button class="tally-btn" data-action="decrease-free-probes">-</button>
+                    <button class="tally-btn" data-action="increase-free-probes">+</button>
+                </div>
+                <div id="biomass-box" class="info-box hidden">
+                    <strong>Points de Biomasse:</strong>
+                    <span id="biomass-points" class="stat-value"></span>
+                    <button class="tally-btn" data-action="decrease-biomass">-</button>
+                    <button class="tally-btn" data-action="increase-biomass">+</button>
+                </div>
+                
+                <div class="info-box">
+                    <strong>Éclats de Sombreroche:</strong>
+                    <span id="sombreroche-points" class="stat-value"></span>
+                    <button class="tally-btn" data-action="decrease-sombreroche">-</button>
+                    <button class="tally-btn" data-action="increase-sombreroche">+</button>
+                </div>
+                <div class="info-box">
+                    <strong>Limite de Ravitaillement:</strong>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                        <input type="number" id="supply-limit" min="0" style="width: 80px; display: inline-block;">
+                        <span>PL</span>
+                        <button id="increase-supply-limit-btn" class="tally-btn" title="Augmenter la limite de 200 PL pour 1 RP" style="margin-left: auto;">+200</button>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <strong>Coût Optimisations:</strong> <span id="upgrade-supply-cost" class="stat-value">0</span> pts
+                </div>
+                <div class="info-box">
+                    <strong>Ravitaillement Utilisé:</strong> <span id="supply-used" class="stat-value readonly"></span> PL
+                    <br>
+                    <small>Restant: <span id="supply-remaining" style="color: white; font-weight: bold;"></span> PL</small>
+                </div>
+                <div class="info-box">
+                    <strong>Décompte de Batailles:</strong> <span id="battle-tally" class="stat-value">0</span>
+                    (V:<span id="wins">0</span> / D:<span id="losses">0</span>)
+                    <div class="battle-tally-controls">
+                        <button class="tally-btn" data-action="increase-win">+V</button>
+                        <button class="tally-btn" data-action="decrease-win" title="Corriger Victoire">-V</button>
+                        <button class="tally-btn" data-action="increase-loss">+D</button>
+                        <button class="tally-btn" data-action="decrease-loss" title="Corriger Défaite">-D</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tyranid-devour-tracker" class="hidden" style="background-color: #1a1a1a; padding: 15px; border: 1px solid var(--border-color); margin-top: 20px;">
+                </div>
+            <div id="sororitas-sainthood-box" class="hidden">
+                <hr>
+                <h3>Épreuves d'une Sainte Vivante</h3>
+                <div class="sainthood-controls">
+                    <div class="info-box">
+                        <strong>Sainte Potentia Actuelle:</strong>
+                        <span id="saint-potentia-name">Aucune</span>
+                        <button id="select-saint-btn" class="btn-secondary">Choisir</button>
+                        <button id="change-saint-btn" class="btn-danger">Changer (1 RP)</button>
+                    </div>
+                    <div class="info-box">
+                        <label for="active-trial-select"><strong>Épreuve Active:</strong></label>
+                        <select id="active-trial-select"></select>
+                        <button id="divine-call-btn" class="btn-secondary" style="margin-top: 5px; width: 100%;">Appel Divin (1 PR)</button>
+                    </div>
+                    <div class="info-box">
+                        <strong>Points de Martyre:</strong>
+                        <span id="martyrdom-points" class="stat-value">0</span>
+                        <button class="tally-btn" data-action="decrease-martyrdom">-</button>
+                        <button class="tally-btn" data-action="increase-martyrdom">+</button>
+                    </div>
+                </div>
+                <div id="trials-grid">
+                    </div>
+                 <div class="info-panel" style="margin-top: 15px; background-color: #1a1a1a; padding: 15px;">
+                    <h4>Récompenses de Sainte</h4>
+                    <div id="saint-rewards-display">
+                        <p>Les récompenses des Épreuves terminées (10+ points) apparaîtront ici.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="deathguard-box" class="info-box hidden" style="grid-column: 1 / -1; background-color: #1a1a1a; padding: 15px; border: 1px solid var(--border-color); margin-top: 20px;">
+                <h3 style="text-align: center; color: var(--friendly-color);">Centre de Commandement de la Peste</h3>
+                <div class="sainthood-controls">
+                    <div class="info-box">
+                        <strong title="Mise en Culture : Après une bataille où vous avez réussi à Concrétiser une Peste, vous gagnez D3 PC.&#10;---&#10;Bilan des Victimes : Si le nombre de figurines ennemies détruites est ≥ au double de la Vulnérabilité de votre monde, vous gagnez D3 PC.">Points de Contagion:</strong>
+                        <span id="contagion-points" class="stat-value"></span>
+                        <button class="tally-btn" data-action="decrease-contagion">-</button>
+                        <button class="tally-btn" data-action="increase-contagion">+</button>
+                    </div>
+                    <div class="info-box">
+                        <strong>Puissance du Pathogène:</strong>
+                        <span id="pathogen-power" class="stat-value">1</span> / 7
+                    </div>
+                    <div class="info-box">
+                        <strong>Taux de Reproduction:</strong> <span id="plague-reproduction" class="stat-value">1</span> / 6
+                    </div>
+                    <div class="info-box">
+                        <strong>Taux de Survie:</strong> <span id="plague-survival" class="stat-value">1</span> / 6
+                    </div>
+                    <div class="info-box">
+                        <strong>Adaptabilité:</strong> <span id="plague-adaptability" class="stat-value">1</span> / 6
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 10px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="upgrade-plague-btn" class="btn-secondary">Améliorer la Peste</button>
+                    <button id="adapt-toxins-btn" class="btn-secondary">Adapter les Toxines (1 PR)</button>
+                </div>
+            </div>
+
+            <hr>
+
+            <h3>Ordre de Bataille</h3>
+            <table id="order-of-battle">
+                <thead>
+                    <tr>
+                        <th>Nom de l'Unité</th>
+                        <th>Rôle</th>
+                        <th>Coût en Points</th>
+                        <th>Points de Croisade</th>
+                        <th>XP</th>
+                        <th>Rang</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="units-tbody">
+                </tbody>
+            </table>
+            <button id="add-unit-btn" class="btn-primary">Ajouter une Unité</button>
+
+            <hr>
+
+            <h3>Objectifs & Notes</h3>
+            <textarea id="goals-notes" rows="4" placeholder="Notez ici les objectifs de croisade, les agendas ou d'autres notes..."></textarea>
+        </section>
+    </div>
+
+    <div id="player-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="player-modal-title">Ajouter un Joueur</h3>
+            <form id="player-form">
+                <input type="hidden" id="player-id">
+                <label for="player-name-input">Nom du Joueur :</label>
+                <input type="text" id="player-name-input" required>
+                <label for="player-faction-input">Faction Principale :</label>
+                <select id="player-faction-input" required>
+                    <option value="" disabled selected>Choisir une faction...</option>
+                    <optgroup label="Imperium">
+                        <option value="Adepta Sororitas">Adepta Sororitas</option>
+                        <option value="Adeptus Custodes">Adeptus Custodes</option>
+                        <option value="Adeptus Mechanicus">Adeptus Mechanicus</option>
+                        <option value="Adeptus Titanicus">Adeptus Titanicus</option>
+                        <option value="Agents of the Imperium">Agents of the Imperium</option>
+                        <option value="Astra Militarum">Astra Militarum</option>
+                        <option value="Black Templars">Black Templars</option>
+                        <option value="Blood Angels">Blood Angels</option>
+                        <option value="Dark Angels">Dark Angels</option>
+                        <option value="Deathwatch">Deathwatch</option>
+                        <option value="Grey Knights">Grey Knights</option>
+                        <option value="Imperial Knights">Imperial Knights</option>
+                        <option value="Space Marines">Space Marines</option>
+                        <option value="Space Wolves">Space Wolves</option>
+                    </optgroup>
+                    <optgroup label="Chaos">
+                        <option value="Chaos Daemons">Chaos Daemons</option>
+                        <option value="Chaos Knights">Chaos Knights</option>
+                        <option value="Chaos Space Marines">Chaos Space Marines</option>
+                        <option value="Death Guard">Death Guard</option>
+                        <option value="Emperor's Children">Emperor's Children</option>
+                        <option value="Thousand Sons">Thousand Sons</option>
+                        <option value="World Eaters">World Eaters</option>
+                    </optgroup>
+                    <optgroup label="Xenos">
+                        <option value="Aeldari">Aeldari</option>
+                        <option value="Drukhari">Drukhari</option>
+                        <option value="Genestealer Cults">Genestealer Cults</option>
+                        <option value="Leagues of Votann">Leagues of Votann</option>
+                        <option value="Necrons">Necrons</option>
+                        <option value="Orks">Orks</option>
+                        <option value="T'au Empire">T'au Empire</option>
+                        <option value="Tyranids">Tyranids</option>
+                    </optgroup>
+                </select>
+                <button type="submit" class="btn-primary">Sauvegarder</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="unit-modal" class="modal hidden">
+        <div class="modal-content large crusade-card">
+            <span class="close-btn">&times;</span>
+            <h3 id="unit-modal-title" class="crusade-card-title">Fiche d'Unité de Croisade</h3>
+            <form id="unit-form">
+                <input type="hidden" id="unit-id">
+                <div class="unit-card-header">
+                     <div class="form-group">
+                        <label for="unit-name">Nom de l'unité :</label>
+                        <select id="unit-name" required>
+                            <option value="" disabled selected>Choisir une unité...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="unit-upgrades-section">
+                    <h4 class="upgrades-title">Gestion des Améliorations</h4>
+                    <div class="upgrades-grid">
+
+                        <div class="upgrade-control-group">
+                            <label for="battle-trait-select">Trait de Bataille (+1 PC)</label>
+                            <div class="input-group">
+                                <select id="battle-trait-select"><option>Choisir un trait...</option></select>
+                                <button type="button" class="btn-secondary" id="add-battle-trait-btn">Ajouter</button>
+                            </div>
+                        </div>
+                        
+                        <div class="upgrade-control-group">
+                            <label for="weapon-mod-select">Modification d'Arme (+1 PC)</label>
+                            <div class="input-group">
+                                <select id="weapon-mod-select"><option>Choisir une modification...</option></select>
+                                <button type="button" class="btn-secondary" id="add-weapon-mod-btn">Ajouter</button>
+                            </div>
+                        </div>
+
+                        <div class="upgrade-control-group">
+                            <label for="relic-select">Relique de Croisade</label>
+                            <div class="input-group">
+                                <select id="relic-select"><option>Choisir une relique...</option></select>
+                                <button type="button" class="btn-secondary" id="add-relic-btn">Ajouter</button>
+                            </div>
+                        </div>
+                        
+                        <div id="detachment-upgrade-section" class="upgrade-control-group">
+                            <label for="detachment-upgrade-select" title="Coût en Points de Réquisition. Le coût en points d'armée est ajouté automatiquement à votre total.">Optimisation de Détachement (1 PR)</label>
+                            <div class="input-group">
+                                <select id="detachment-upgrade-select"><option value="">Choisir une optimisation...</option></select>
+                                <button type="button" class="btn-secondary" id="add-detachment-upgrade-btn">Ajouter</button>
+                            </div>
+                        </div>
+
+                        <div class="upgrade-control-group">
+                            <label for="battle-scar-select">Cicatrice de Bataille</label>
+                            <div class="input-group">
+                                <select id="battle-scar-select"><option>Choisir une cicatrice...</option></select>
+                                <button type="button" class="btn-secondary" id="add-battle-scar-btn">Ajouter</button>
+                                <button type="button" class="btn-danger hidden" id="degenerate-unit-btn">Dégénérescence (1 PR)</button>
+                            </div>
+                        </div>
+
+                        <div id="sororitas-upgrades-section" class="upgrade-control-group hidden">
+                            <label for="illuminate-by-pain-btn">Réquisition Spécifique</label>
+                            <div class="input-group">
+                                <button type="button" class="btn-primary" id="illuminate-by-pain-btn" title="Utilisez cette Réquisition après une bataille, avant qu'une unité ne fasse un test de Mise Hors de Combat. Choisissez cette unité et chaque Séquelle de Combat est 1 Honneur de Bataille de votre choix. Si cette unité est une Sainte Potentia, elle gagne également 2 points de Sainte et 1 point de Martyre.">
+                                    L'Illumination par la Douleur (1 PR)
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="upgrade-control-group">
+                            <label for="sombreroche-honour-select">Honneur de Sombreroche (Éclats)</label>
+                            <div class="input-group">
+                                <select id="sombreroche-honour-select"><option>Choisir un honneur...</option></select>
+                                <button type="button" class="btn-secondary" id="add-sombreroche-honour-btn">Acheter</button>
+                            </div>
+                        </div>
+
+                        <div class="upgrade-control-group">
+                            <label for="sombreroche-relic-select">Relique de Sombreroche (Éclats)</label>
+                            <div class="input-group">
+                                <select id="sombreroche-relic-select"><option>Choisir une relique...</option></select>
+                                <button type="button" class="btn-secondary" id="add-sombreroche-relic-btn">Acheter</button>
+                            </div>
+                        </div>
+
+                        <div id="biomorphology-section" class="upgrade-control-group hidden">
+                            <label for="biomorphology-select">Biomorphologie (Biomasse)</label>
+                            <div class="input-group">
+                                <select id="biomorphology-select"><option>Choisir une adaptation...</option></select>
+                                <button type="button" class="btn-secondary" id="add-biomorphology-btn">Absorber</button>
+                            </div>
+                        </div>
+                        
+<div id="nurgle-boon-section" class="upgrade-control-group hidden">
+    <label for="nurgle-boon-select">Bienfait de Nurgle</label>
+    <div class="input-group">
+        <button type="button" class="btn-secondary" id="add-nurgle-boon-btn" style="width: 100%;">Lancer pour un Bienfait</button>
+    </div>
+</div>
+
+                        <div id="legion-of-shadow-section" class="upgrade-control-group hidden">
+                            <label for="legion-of-shadow-select">Optimisation de l'Ombre (+1 PR)</label>
+                            <div class="input-group">
+                                <select id="legion-of-shadow-select"><option>Choisir une optimisation...</option></select>
+                                <button type="button" class="btn-secondary" id="add-legion-of-shadow-btn">Ajouter</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="unit-card-body">
+                    <div class="unit-card-column">
+                        <div class="form-group small">
+                            <label for="unit-role">Rôle :</label>
+                            <select id="unit-role">
+                                <option value="Personnage">Personnage</option>
+                                <option value="Hero Epique">Hero Epique</option>
+                                <option value="Infantrie">Infanterie</option>
+                                <option value="Cavalerie">Cavalerie</option>
+                                <option value="Monstre">Monstre</option>
+                                <option value="Vehicule">Véhicule</option>
+                                <option value="Bête">Bête</option>
+                                <option value="Fortification">Fortification</option>
+                                <option value="Titanesque">Titanesque</option>
+                                <option value="Nuée">Nuée</option>
+                            </select>
+                        </div>
+                        <div class="form-group small">
+                            <label for="unit-power">Coût en Points :</label>
+                            <input type="number" id="unit-power" min="0" required>
+                            <button type="button" id="double-unit-cost-btn" class="tally-btn" title="Doubler le coût et la taille de l'unité">x2</button>
+                        </div>
+                        <div class="form-group small"><label for="unit-xp">XP :</label><input type="number" id="unit-xp" min="0"></div>
+                        <div class="form-group small"><label for="unit-crusade-points">Points de Croisade :</label><input type="number" id="unit-crusade-points" min="0"></div>
+                        <div class="form-group small"><strong>Rang:</strong> <span id="unit-rank-display"></span></div>
+                        <div class="form-group"><label for="unit-equipment">Équipement :</label><textarea id="unit-equipment" rows="5"></textarea></div>
+                        <div class="form-group"><label for="unit-warlord-trait">Trait de Seigneur de Guerre :</label><textarea id="unit-warlord-trait" rows="3"></textarea></div>
+                        <div class="form-group"><label for="unit-relic">Relique :</label><textarea id="unit-relic" rows="3"></textarea></div>
+                    </div>
+                    <div class="unit-card-column">
+                        <div class="form-group"><label for="unit-honours">Honneurs de Bataille :</label><textarea id="unit-honours" rows="5"></textarea></div>
+                        <div class="form-group"><label for="unit-scars">Cicatrices de Bataille :</label><textarea id="unit-scars" rows="5"></textarea></div>
+                        <div class="form-group"><label for="unit-marked-for-glory">Marqué pour la Gloire (unités détruites) :</label><input type="number" id="unit-marked-for-glory" min="0"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">Sauvegarder l'Unité</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="world-modal" class="modal hidden">
+        <div class="modal-content x-large">
+            <span class="close-btn">&times;</span>
+            <h3 id="world-modal-title" class="crusade-card-title">Système Planétaire</h3>
+            <button id="show-history-btn" class="btn-secondary" style="margin-bottom: 15px;">Historique Complet</button>
+            <button id="show-map-btn" class="btn-secondary" style="margin-bottom: 15px;">Voir la Carte Galactique</button>
+            <button id="edit-crusade-order-btn" class="btn-primary" style="margin-bottom: 15px;">Éditer l'Ordre de Croisade</button>
+            <div id="system-container">
+                <button class="explore-arrow" id="explore-up" title="Explorer vers le Nord">↑</button>
+                <button class="explore-arrow" id="explore-left" title="Explorer vers l'Ouest">←</button>
+                <div id="planetary-system">
+                </div>
+                <button class="explore-arrow" id="explore-right" title="Explorer vers l'Est">→</button>
+                <button class="explore-arrow" id="explore-down" title="Explorer vers le Sud">↓</button>
+            </div>
+            <div id="planet-legend">
+                <h4>Légende des Planètes <span id="colonization-percentage"></span></h4>
+                <div id="system-view-probe-container" style="text-align: center; margin-bottom: 10px; color: var(--text-muted-color);">
+                    Sondes Gratuites : <strong id="system-view-free-probes" style="color: var(--friendly-color);">0</strong>
+                </div>
+                <div class="legend-item"><span class="legend-color" data-type="Monde Mort"></span> Monde Mort</div>
+                <div class="legend-item"><span class="legend-color" data-type="Monde Sauvage"></span> Monde Sauvage</div>
+                <div class="legend-item"><span class="legend-color" data-type="Agri-monde"></span> Agri-monde</div>
+                <div class="legend-item"><span class="legend-color" data-type="Monde Forge"></span> Monde Forge</div>
+                <div class="legend-item"><span class="legend-color" data-type="Monde Ruche"></span> Monde Ruche</div>
+                <div class="legend-item"><span class="legend-color" data-type="Monde Saint (relique)"></span> Monde Saint (relique)</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="planet-type-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="planet-type-modal-title">Détails de la Planète</h3>
+            <form id="planet-type-form">
+                <input type="hidden" id="planet-system-id">
+                <input type="hidden" id="planet-index">
+    
+                <div class="form-group">
+                    <label for="planet-name-input">Nom de la planète:</label>
+                    <input type="text" id="planet-name-input">
+                </div>
+    
+                <details id="admin-section">
+                    <summary style="cursor: pointer; font-family: 'Cinzel', serif; color: var(--primary-color);">Paramètres Administratifs (Protégé)</summary>
+                    <div class="admin-unlock-panel" style="padding: 15px 0 0 0;">
+                        <div class="form-group">
+                            <label for="admin-password">Mot de passe :</label>
+                            <input type="password" id="admin-password" placeholder="Mdp est : warp">
+                        </div>
+                        <button type="button" id="unlock-admin-btn" class="btn-secondary">Déverrouiller</button>
+                        <button type="button" id="lock-admin-btn" class="btn-secondary hidden">Verrouiller</button>
+    
+                        <div id="admin-controls" class="hidden" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                            <div class="form-group">
+                                <label for="planet-type-select">Type de Monde :</label>
+                                <select id="planet-type-select">
+                                    <option value="Monde Mort">Monde Mort</option>
+                                    <option value="Monde Sauvage">Monde Sauvage</option>
+                                    <option value="Agri-monde">Agri-monde</option>
+                                    <option value="Monde Forge">Monde Forge</option>
+                                    <option value="Monde Ruche">Monde Ruche</option>
+                                    <option value="Monde Saint (relique)">Monde Saint (relique)</option>
+                                </select>
+                            </div>
+                             <div class="form-group">
+                                <label for="planet-owner-select">Propriétaire :</label>
+                                <select id="planet-owner-select"></select>
+                            </div>
+                            <div class="form-group" id="planet-defense-container">
+                                <label for="planet-defense-input">Points de Défense (PNJ):</label>
+                                <input type="number" id="planet-defense-input" min="0" step="50">
+                            </div>
+                            <hr>
+                            <button type="submit" class="btn-primary">Valider les Changements</button>
+                            <button type="button" id="randomize-planet-btn" class="btn-secondary" style="margin-left: 10px;">Randomiser Planète (2 RP)</button>
+                        </div>
+                    </div>
+                </details>
+    
+                <hr>
+    
+                <div class="form-group hidden" id="dead-world-link-container">
+                    <label for="dead-world-link-select">Créer un portail vers un autre Monde Mort :</label>
+                    <select id="dead-world-link-select"></select>
+                    <button type="button" id="link-dead-world-btn" class="btn-primary" style="margin-top: 10px;">Activer le Portail</button>
+                </div>
+                
+                <div id="planet-actions-container"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="map-modal" class="modal hidden">
+        <div class="modal-content large">
+            <span class="close-btn">&times;</span>
+            <h3 class="crusade-card-title">Carte Galactique</h3>
+
+            <div class="map-modal-tabs">
+                <button class="tab-link active" data-tab="map-content-panel">Carte</button>
+                <button class="tab-link" data-tab="info-content-panel">Regles Adapter pour la campagne</button>
+            </div>
+
+            <div id="map-content-panel" class="map-modal-content-panel active">
+                <div class="map-controls">
+                    <label for="map-player-view-select">Point de vue :</label>
+                    <select id="map-player-view-select"></select>
+                    <div id="map-free-probes-container" class="info-box" style="padding: 5px 10px; margin-left: 20px; border-radius: 5px; background-color: #1a1a1a;">
+                        <strong>Sondes Gratuites:</strong> <span id="map-view-free-probes" class="stat-value">0</span>
+                    </div>
+                    <div id="map-probe-controls" class="hidden" style="margin-left: 20px; border-left: 2px solid var(--border-color); padding-left: 20px; gap: 10px;">
+                        <span style="align-self: center;">Sonder depuis le système sélectionné:</span>
+                        <button id="map-probe-up" class="btn-secondary" title="Sonder vers le Nord">↑</button>
+                        <button id="map-probe-down" class="btn-secondary" title="Sonder vers le Sud">↓</button>
+                        <button id="map-probe-left" class="btn-secondary" title="Sonder vers l'Ouest">←</button>
+                        <button id="map-probe-right" class="btn-secondary" title="Sonder vers l'Est">→</button>
+                    </div>
+                </div>
+                <div id="galactic-map-container">
+                </div>
+            </div>
+
+            <div id="info-content-panel" class="map-modal-content-panel hidden">
+                </div>
+        </div>
+    </div>
+
+    <div id="npc-combat-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 class="crusade-card-title">Combat Planétaire PNJ</h3>
+            <div class="npc-combat-details">
+                <p><strong>Attaquant :</strong> <span id="npc-combat-attacker-name"></span></p>
+                <div class="form-group">
+                    <label for="npc-combat-defender-select">Choisir le joueur incarnant les PNJ :</label>
+                    <select id="npc-combat-defender-select">
+                        <option value="" disabled selected>Sélectionner un défenseur...</option>
+                    </select>
+                </div>
+                <p class="combat-reward-info">
+                    Le défenseur recevra <strong>1 Sonde Gratuite</strong> pour sa participation, quel que soit le résultat.
+                </p>
+            </div>
+            <div class="modal-actions">
+                <button id="finish-npc-combat-btn" class="btn-primary">Combat Terminé</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pvp-combat-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 class="crusade-card-title">Combat Planétaire - Joueur vs Joueur</h3>
+            <div class="npc-combat-details">
+                <p><strong>Attaquant :</strong> <span id="pvp-combat-attacker-name"></span></p>
+                <p><strong>Défenseur :</strong> <span id="pvp-combat-defender-name"></span></p>
+                <p class="combat-reward-info">
+                    Le vainqueur et le vaincu reçoivent chacun <strong>1 Point de Réquisition</strong> pour leur participation.
+                </p>
+            </div>
+            <div class="modal-actions">
+                <button id="finish-pvp-combat-btn" class="btn-primary">Combat Terminé</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="notification-container"></div>
+    
+    <div id="action-log-container" class="action-log">
+        <div id="action-log-header">
+            <h4>Historique des Actions</h4>
+            <button id="toggle-log-btn" title="Réduire/Agrandir">_</button>
+        </div>
+        <div id="action-log-entries">
+            </div>
+    </div>
+
+
+    <div id="confirm-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="confirm-modal-title">Confirmation</h3>
+            <p id="confirm-modal-text" style="line-height: 1.6;"></p>
+            <div class="modal-actions">
+                <button id="confirm-modal-cancel-btn" class="btn-secondary">Annuler</button>
+                <button id="confirm-modal-ok-btn" class="btn-primary">Confirmer</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="exploration-choice-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="exploration-choice-title">Méthode d'Exploration</h3>
+            <p id="exploration-choice-text" style="line-height: 1.6;"></p>
+            <div class="modal-actions" style="justify-content: space-between; flex-wrap: wrap;">
+                <button id="exploration-choice-cancel-btn" class="btn-secondary">Annuler</button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="exploration-choice-blind-jump-btn" class="btn-primary">Saut à l'aveugle</button>
+                    <button id="exploration-choice-probe-btn" class="btn-primary">Envoyer la sonde (1 RP)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="route-discovery-choice-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="route-discovery-choice-title">Route non cartographiée</h3>
+            <p id="route-discovery-choice-text" style="line-height: 1.6;"></p>
+            <div class="modal-actions" style="justify-content: space-between; flex-wrap: wrap;">
+                <button id="route-discovery-choice-cancel-btn" class="btn-secondary">Annuler</button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="route-discovery-choice-map-btn" class="btn-primary">Cartographier la Route</button>
+                    <button id="route-discovery-choice-probe-btn" class="btn-primary">Envoyer la sonde (1 RP)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="probe-action-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="probe-action-title">Confirmer la Connexion</h3>
+            <p id="probe-action-text" style="line-height: 1.6;"></p>
+            <p id="probe-action-timer" style="line-height: 1.6; color: var(--text-muted-color); font-style: italic;"></p>
+            <div class="modal-actions" style="justify-content: space-between; flex-wrap: wrap;">
+                <button id="probe-action-rescan-btn" class="btn-secondary">Relancer une sonde (1 RP)</button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="probe-action-cancel-btn" class="btn-secondary">Annuler</button>
+                    <button id="probe-action-establish-btn" class="btn-primary">Établir le lien</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="password-confirm-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="password-confirm-modal-title">Confirmation</h3>
+            <p id="password-confirm-modal-text" style="line-height: 1.6;"></p>
+            <div class="form-group" style="margin-top: 15px;">
+                <label for="password-confirm-input">Mot de passe de confirmation :</label>
+                <input type="password" id="password-confirm-input" placeholder="Mdp est : warp">
+            </div>
+            <div class="modal-actions">
+                <button id="password-confirm-modal-cancel-btn" class="btn-secondary">Annuler</button>
+                <button id="password-confirm-modal-ok-btn" class="btn-danger">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="plague-management-modal" class="modal hidden">
+        <div class="modal-content large">
+            <span class="close-btn">&times;</span>
+            <h3 id="plague-modal-title" class="crusade-card-title">Guerre Bactériologique</h3>
+            <div id="plague-warfare-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4 style="text-align: center;">Caractéristiques du Monde</h4>
+                    <div class="info-box"><strong>Fécondité:</strong> <span id="planet-fecundity"></span></div>
+                    <div class="info-box"><strong>Densité de Population:</strong> <span id="planet-population"></span></div>
+                    <div class="info-box"><strong>Vulnérabilité:</strong> <span id="planet-vulnerability"></span></div>
+                </div>
+                <div>
+                    <h4 style="text-align: center;">Caractéristiques de la Peste</h4>
+                    <div class="info-box"><strong>Taux de Reproduction:</strong> <span id="player-plague-reproduction"></span></div>
+                    <div class="info-box"><strong>Taux de Survie:</strong> <span id="player-plague-survival"></span></div>
+                    <div class="info-box"><strong>Adaptabilité:</strong> <span id="player-plague-adaptability"></span></div>
+                </div>
+            </div>
+            <hr>
+            <div style="text-align: center;">
+                <h3>Total de Peste: <span id="total-peste-value" style="color: var(--friendly-color);">0</span></h3>
+                <p>Le Total de Peste est la somme des 3 scores combinés ci-dessus.</p>
+                <p>Un score de <b>7+</b> est nécessaire pour tenter de Concrétiser la Peste.</p>
+                <button id="conquer-plague-btn" class="btn-primary" disabled>Concrétiser la Peste (1 PR)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="full-history-modal" class="modal hidden">
+        <div class="modal-content large">
+            <span class="close-btn">&times;</span>
+            <h3 id="full-history-modal-title">Historique Complet</h3>
+            <div class="history-filters" style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <label for="history-date-filter" style="margin-bottom: 0;">Filtrer par date :</label>
+                <input type="date" id="history-date-filter" style="width: auto;">
+                <button id="clear-history-filter-btn" class="btn-secondary">Réinitialiser</button>
+            </div>
+            <div id="full-history-entries" style="overflow-y: auto; height: 60vh; background-color: #1e1e1e; padding: 10px; border: 1px solid var(--border-color);">
+            </div>
+        </div>
+    </div>
+
+    <div id="unit-choice-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="unit-choice-modal-title">Choisir une unité</h3>
+            <p id="unit-choice-modal-text"></p>
+            <div class="form-group" style="margin-top: 15px;">
+                <label for="unit-choice-select">Unité :</label>
+                <select id="unit-choice-select"></select>
+            </div>
+            <div class="modal-actions">
+                <button id="unit-choice-cancel-btn" class="btn-secondary">Annuler</button>
+                <button id="unit-choice-ok-btn" class="btn-primary">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="engine.js"></script> 
+    <script src="rules.js"></script>
+    <script src="rules_mod_campaign.js"></script>
+    <script src="galaxy.js"></script>
+    <script src="sororitas_module.js"></script> 
+    <script src="deathguard_module.js"></script>
+    <script src="tyranid_module.js"></script>
+    <script src="render.js"></script>
+    <script src="upgrades.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
