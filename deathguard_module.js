@@ -114,12 +114,21 @@ const deathGuardCrusadeRules = {
         { roll: "11", name: "Vitalité Fébrile", desc: "Ajoutez 1 à la caractéristique de Mouvement des figurines de l'unité de cette figurine." },
         { roll: "12", name: "Membres Sinueux", desc: "Ajoutez 1 aux jets d'Avance et de Charge pour le porteur de cette figurine." },
         { roll: "13", name: "Tentacules Grouillantes", desc: "Ajoutez 1 à la caractéristique d'Attaques des armes de mêlée dont cette figurine est équipée." },
-        { roll: "21", name: "Hideusement Enflé", desc: "Ajoutez 2 à la caractéristique de Points de vie (W) de cette figurine." },
+        { roll: "21", name: "Hideusement Enflé", desc: "Ajoutez 1 à la caractéristique de Points de Vie de cette figurine." },
         { roll: "22", name: "Insensibilité Lépreuse", desc: "Cette figurine a l'aptitude Insensible à la Douleur 5+." },
         { roll: "23", name: "Voile de Mouches", desc: "Les figurines de l'unité de cette figurine ont l'aptitude Discrétion." },
         { roll: "31", name: "Contact Putréfiant", desc: "Améliorez de 1 la caractéristique de Pénétration d'armure (AP) des armes de mêlée dont cette figurine est équipée." },
         { roll: "32", name: "Pestevision", desc: "À chaque attaque de cette figurine qui cible une unité Affligée, vous pouvez relancer le jet de touche." },
         { roll: "33", name: "Tourbillon de Miasmes", desc: "Ajoutez 6\" à la Portée de Contagion de cette figurine." }
+    ],
+
+    // NOUVEAU : Effets temporaires accordés après trois réussites consécutives sur la Voie de la Contagion.
+    contagionBlessings: [
+        { name: "Œil de Nurgle", desc: "Augmentez de 1 la portée de Contagion des unités de votre force de Croisade." },
+        { name: "Promesse Fétide", desc: "Choisissez une unité de PERSONNAGE de votre force de Croisade ; elle gagne 1 PEX." },
+        { name: "Poissons Suintants", desc: "Vos forces de Croisade gagnent l'aptitude \u00ab Armes Empoisonn\u00e9es 2+ \u00bb jusqu'\u00e0 la fin de la prochaine bataille." },
+        { name: "Moisson Sans Fin", desc: "Vous pouvez relancer les jets de touche de 1 lors de la prochaine bataille." },
+        { name: "Une Propagation Vaste", desc: "Ajoutez un monde de Nurgle \u00e0 votre carte de campagne, ce qui augmente votre limite de Ressources de 1." }
     ],
 
     // NOUVEAU : Ajout des Bénédictions de Nurgle liées au système de Grande Peste.
