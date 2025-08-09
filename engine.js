@@ -814,11 +814,18 @@ const saveDataOnline = async () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(campaignData)
         });
-        if (!response.ok) throw new Error('Network error');
-        showNotification("Sauvegarde en ligne réussie !", 'success');
+        const result = await response.json().catch(() => ({}));
+
+        if (response.ok) {
+            const detail = result.details || result.message || '';
+            showNotification(`Sauvegarde en ligne réussie ! ${detail}`, 'success');
+        } else {
+            const detail = result.details || result.error || 'Erreur réseau';
+            showNotification(`Échec de la sauvegarde en ligne : ${detail}`, 'error');
+        }
     } catch (err) {
         console.error('Erreur sauvegarde en ligne :', err);
-        showNotification("Échec de la sauvegarde en ligne.", 'error');
+        showNotification(`Échec de la sauvegarde en ligne : ${err.message}`, 'error');
     }
 };
 
@@ -827,9 +834,14 @@ const loadDataOnline = async () => {
     if (!key) return;
     try {
         const response = await fetch(`/.netlify/functions/loadCampaign?key=${encodeURIComponent(key)}`);
-        if (!response.ok) throw new Error('Save not found');
-        const data = await response.json();
-        campaignData = data;
+        const result = await response.json();
+
+        if (!response.ok) {
+            const detail = result.details || result.error || 'Erreur réseau';
+            throw new Error(detail);
+        }
+
+        campaignData = result;
         migrateData();
         saveData();
         renderPlayerList();
@@ -837,6 +849,6 @@ const loadDataOnline = async () => {
         showNotification("Chargement en ligne réussi !", 'success');
     } catch (err) {
         console.error('Erreur chargement en ligne :', err);
-        showNotification("Échec du chargement en ligne.", 'error');
+        showNotification(`Échec du chargement en ligne : ${err.message}`, 'error');
     }
 };
