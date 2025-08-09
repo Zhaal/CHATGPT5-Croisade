@@ -1,6 +1,3 @@
-// Function Netlify (CommonJS) — chargement en ligne
-// Utilise Netlify Blobs via import() dynamique + shim d'export
-
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
@@ -8,7 +5,6 @@ function corsHeaders() {
     "Access-Control-Allow-Headers": "Content-Type",
   };
 }
-
 function respond(statusCode, json) {
   return {
     statusCode,
@@ -18,45 +14,28 @@ function respond(statusCode, json) {
 }
 
 exports.handler = async (event) => {
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: corsHeaders() };
-  }
-  if (event.httpMethod !== "GET") {
-    return respond(405, { error: "Method Not Allowed" });
-  }
+  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: corsHeaders() };
+  if (event.httpMethod !== "GET") return respond(405, { error: "Method Not Allowed" });
 
-  const key =
-    (event.queryStringParameters && event.queryStringParameters.key) ||
-    "default";
+  const key = (event.queryStringParameters && event.queryStringParameters.key) || "default";
 
   try {
-    // Import ESM robuste
     const mod = await import("@netlify/blobs");
-    const getStore = mod.getStore || (mod.default && mod.default.getStore);
-    if (!getStore) {
-      throw new Error(
-        "Netlify Blobs: getStore introuvable. Mets à jour @netlify/blobs (ex: ^7) ou garde ce shim."
-      );
-    }
+    const getStore = mod.getStore || mod.default?.getStore;
+    if (!getStore) throw new Error("Netlify Blobs: getStore introuvable.");
 
-    const store = getStore("campaigns");
+    const siteID = process.env.BLOBS_SITE_ID;
+    const token  = process.env.BLOBS_TOKEN;
+    console.log("loadCampaign env:", !!siteID, !!token); // true true attendu
+    if (!siteID || !token) throw new Error("BLOBS_SITE_ID ou BLOBS_TOKEN manquant(s).");
 
-    // Lecture brute (string JSON). Option: await store.get(key, { type: 'json' })
-    const data = await store.get(key);
+    const store = getStore("campaigns", { siteID, token });
+    const data = await store.get(key); // string JSON
 
     if (!data) return respond(404, { error: "not found" });
-
-    // On renvoie le JSON tel quel (déjà stringifié côté save)
-    return {
-      statusCode: 200,
-      headers: { ...corsHeaders(), "Content-Type": "application/json" },
-      body: data,
-    };
+    return { statusCode: 200, headers: { ...corsHeaders(), "Content-Type": "application/json" }, body: data };
   } catch (err) {
     console.error("loadCampaign error:", err);
-    return respond(500, {
-      error: "load failed",
-      details: String((err && err.message) || err),
-    });
+    return respond(500, { error: "load failed", details: String(err?.message || err) });
   }
 };
