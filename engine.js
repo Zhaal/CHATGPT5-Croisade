@@ -809,7 +809,8 @@ const saveDataOnline = async () => {
     const key = prompt("Identifiant de sauvegarde en ligne :");
     if (!key) return;
     try {
-        const response = await fetch(`/.netlify/functions/saveCampaign?key=${encodeURIComponent(key)}`, {
+        const base = window.location.origin;
+        const response = await fetch(`${base}/.netlify/functions/saveCampaign?key=${encodeURIComponent(key)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(campaignData)
