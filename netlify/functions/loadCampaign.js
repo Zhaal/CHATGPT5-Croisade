@@ -31,8 +31,15 @@ exports.handler = async (event) => {
 
     const store = getStore("campaigns", { siteID, token });
     const data = await store.get(key); // string JSON
-
     if (!data) return respond(404, { error: "not found" });
+
+    try {
+      JSON.parse(data);
+    } catch (parseErr) {
+      console.error("loadCampaign parse error:", parseErr);
+      return respond(500, { error: "corrupted save" });
+    }
+
     return { statusCode: 200, headers: { ...corsHeaders(), "Content-Type": "application/json" }, body: data };
   } catch (err) {
     console.error("loadCampaign error:", err);
