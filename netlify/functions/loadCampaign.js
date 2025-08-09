@@ -1,30 +1,29 @@
 const { getStore } = require('@netlify/blobs');
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'GET') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method Not Allowed' })
-    };
-  }
+function cors() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+}
+function respond(statusCode, json) {
+  return { statusCode, headers: { ...cors(), 'Content-Type': 'application/json' }, body: JSON.stringify(json) };
+}
 
-  const key = event.queryStringParameters && event.queryStringParameters.key ? event.queryStringParameters.key : 'default';
+exports.handler = async (event) => {
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: cors() };
+  if (event.httpMethod !== 'GET') return respond(405, { error: 'Method Not Allowed' });
+
+  const key = (event.queryStringParameters && event.queryStringParameters.key) || 'default';
 
   try {
     const store = getStore('campaigns');
-    const data = await store.get(key);
-    if (!data) {
-      return { statusCode: 404, body: JSON.stringify({ error: 'Save not found' }) };
-    }
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: data
-    };
+    const data = await store.get(key);            // string (JSON)
+    if (!data) return respond(404, { error: 'not found' });
+    return { statusCode: 200, headers: { ...cors(), 'Content-Type': 'application/json' }, body: data };
   } catch (err) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to load data from persistent store', details: err.message })
-    };
+    console.error('loadCampaign error:', err);
+    return respond(500, { error: 'load failed', details: String(err?.message || err) });
   }
 };
