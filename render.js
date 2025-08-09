@@ -60,6 +60,7 @@ const renderPlayerList = () => {
                 <button class="btn-secondary edit-player-btn" data-index="${index}">Modifier</button>
                 <button class="btn-danger delete-player-btn" data-index="${index}">Supprimer</button>
                 <button class="btn-secondary world-btn" data-index="${index}">JOUER</button>
+                <button class="btn-secondary rules-btn" data-index="${index}">Règle</button>
             </div>
         `;
         playerListDiv.appendChild(card);
@@ -845,10 +846,13 @@ const renderActionLog = () => {
 /**
  * Remplit l'onglet des règles de campagne adaptées dans la modale de la carte.
  */
-function renderCampaignRulesTab() {
-    const infoPanel = document.getElementById('info-content-panel');
+function renderCampaignRulesTab(player = null, containerId = 'rules-content-panel') {
+    const infoPanel = document.getElementById(containerId);
+    if (!infoPanel) return;
     infoPanel.innerHTML = ''; // Vider le contenu précédent
-    const player = campaignData.players.find(p => p.id === mapViewingPlayerId);
+    if (!player) {
+        player = campaignData.players.find(p => p.id === mapViewingPlayerId);
+    }
 
     if (!player || !campaignRuleDifferences) {
         infoPanel.innerHTML = `<p>Aucune donnée de règle de campagne à afficher.</p>`;
@@ -912,6 +916,6 @@ function renderCampaignRulesTab() {
             </div>
         </div>
     `;
-    
+
     infoPanel.innerHTML = tableHTML;
 }
