@@ -29,10 +29,10 @@ exports.handler = async (event) => {
     console.log("loadCampaign env:", !!siteID, !!token); // true true attendu
     if (!siteID || !token) throw new Error("BLOBS_SITE_ID ou BLOBS_TOKEN manquant(s).");
 
-    const store = getStore("campaigns", { siteID, token });
-    const data = await store.getJSON(key);
+    const store = getStore({ name: "campaigns", siteID, token });
+    const data = await store.get(key, { type: "json" });
 
-    if (!data) return respond(404, { error: "not found" });
+    if (data === null) return respond(404, { error: "not found" });
     return {
       statusCode: 200,
       headers: { ...corsHeaders(), "Content-Type": "application/json" },

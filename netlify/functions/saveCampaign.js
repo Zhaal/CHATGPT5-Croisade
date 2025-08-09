@@ -31,7 +31,7 @@ exports.handler = async (event) => {
     console.log("saveCampaign env:", !!siteID, !!token); // doit afficher true true
     if (!siteID || !token) throw new Error("BLOBS_SITE_ID ou BLOBS_TOKEN manquant(s).");
 
-    const store = getStore("campaigns", { siteID, token });
+    const store = getStore({ name: "campaigns", siteID, token });
 
     const body =
       event.headers["content-type"]?.includes("application/json")
