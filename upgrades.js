@@ -320,14 +320,15 @@ document.getElementById('add-battle-trait-btn').addEventListener('click', () => 
 
     const traitDesc = findUpgradeDescription(traitName);
     if (!traitDesc) return;
-    
-    handleRpPurchase(`Trait: ${traitName}`, 1, () => {
-        const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
-        addUpgradeToUnitData(unit, 'unit-honours', traitName, traitDesc);
-        unit.crusadePoints = (unit.crusadePoints || 0) + 1;
-        document.getElementById('unit-crusade-points').value = unit.crusadePoints;
-        select.value = '';
-    });
+
+    const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
+    addUpgradeToUnitData(unit, 'unit-honours', traitName, traitDesc);
+    unit.crusadePoints = (unit.crusadePoints || 0) + 1;
+    document.getElementById('unit-crusade-points').value = unit.crusadePoints;
+
+    select.value = '';
+    saveData();
+    showNotification(`Trait "${traitName}" ajouté.`, 'success');
 });
 
 document.getElementById('add-weapon-mod-btn').addEventListener('click', () => {
@@ -338,13 +339,14 @@ document.getElementById('add-weapon-mod-btn').addEventListener('click', () => {
     const mod = crusadeRules.weaponMods.find(m => m.name === modName);
     if (!mod) return;
 
-    handleRpPurchase(`Mod. d'Arme: ${mod.name}`, 1, () => {
-        const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
-        addUpgradeToUnitData(unit, 'unit-honours', mod.name, mod.desc, "Mod. d'Arme: ");
-        unit.crusadePoints = (unit.crusadePoints || 0) + 1;
-        document.getElementById('unit-crusade-points').value = unit.crusadePoints;
-        select.value = '';
-    });
+    const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
+    addUpgradeToUnitData(unit, 'unit-honours', mod.name, mod.desc, "Mod. d'Arme: ");
+    unit.crusadePoints = (unit.crusadePoints || 0) + 1;
+    document.getElementById('unit-crusade-points').value = unit.crusadePoints;
+
+    select.value = '';
+    saveData();
+    showNotification(`Modification d'arme "${mod.name}" ajoutée.`, 'success');
 });
 
 document.getElementById('add-relic-btn').addEventListener('click', () => {
@@ -352,36 +354,37 @@ document.getElementById('add-relic-btn').addEventListener('click', () => {
     const selectedOption = select.options[select.selectedIndex];
     if (!selectedOption.dataset.type) return;
 
-    const [source, category, type] = selectedOption.dataset.type.split('.');
+    const parts = selectedOption.dataset.type.split('.');
     let ruleSet;
-    if (source === 'sororitas') {
-        ruleSet = sororitasCrusadeRules[category][type];
-    } else if (source === 'deathguard') {
-        ruleSet = deathGuardCrusadeRules[category][type];
+    if (parts[0] === 'sororitas') {
+        ruleSet = sororitasCrusadeRules[parts[1]][parts[2]];
+    } else if (parts[0] === 'deathguard') {
+        ruleSet = deathGuardCrusadeRules[parts[1]][parts[2]];
     }
     // ==========================================================
     // DEBUT DE LA MODIFICATION TYRANIDE
     // ==========================================================
-    else if (source === 'tyranid') {
-        ruleSet = tyranidCrusadeRules[category][type];
+    else if (parts[0] === 'tyranid') {
+        ruleSet = tyranidCrusadeRules[parts[1]][parts[2]];
     }
     // ==========================================================
     // FIN DE LA MODIFICATION TYRANIDE
     // ==========================================================
     else {
-        ruleSet = crusadeRules[category][type];
+        ruleSet = crusadeRules[parts[0]][parts[1]];
     }
 
     const relic = ruleSet.find(r => r.name === selectedOption.value);
     if (!relic) return;
-    
-    handleRpPurchase(`Relique: ${relic.name}`, relic.cost, () => {
-        const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
-        addUpgradeToUnitData(unit, 'unit-relic', relic.name, relic.desc);
-        unit.crusadePoints = (unit.crusadePoints || 0) + relic.cost;
-        document.getElementById('unit-crusade-points').value = unit.crusadePoints;
-        select.value = '';
-    });
+
+    const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
+    addUpgradeToUnitData(unit, 'unit-relic', relic.name, relic.desc);
+    unit.crusadePoints = (unit.crusadePoints || 0) + relic.cost;
+    document.getElementById('unit-crusade-points').value = unit.crusadePoints;
+
+    select.value = '';
+    saveData();
+    showNotification(`Relique "${relic.name}" ajoutée.`, 'success');
 });
 
 document.getElementById('add-battle-scar-btn').addEventListener('click', () => {
