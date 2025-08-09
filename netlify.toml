@@ -3,4 +3,6 @@
   functions = "netlify/functions"
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = []
+  # Ensure ESM-only packages like @netlify/blobs aren't bundled so they can
+  # be loaded via dynamic import at runtime
+  external_node_modules = ["@netlify/blobs"]
