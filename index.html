@@ -494,7 +494,6 @@
 
             <div class="map-modal-tabs">
                 <button class="tab-link active" data-tab="map-content-panel">Carte</button>
-                <button class="tab-link" data-tab="info-content-panel">Regles Adapter pour la campagne</button>
             </div>
 
             <div id="map-content-panel" class="map-modal-content-panel active">
@@ -515,9 +514,6 @@
                 <div id="galactic-map-container">
                 </div>
             </div>
-
-            <div id="info-content-panel" class="map-modal-content-panel hidden">
-                </div>
         </div>
     </div>
 
@@ -686,6 +682,14 @@
             </div>
             <div id="full-history-entries" style="overflow-y: auto; height: 60vh; background-color: #1e1e1e; padding: 10px; border: 1px solid var(--border-color);">
             </div>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal hidden">
+        <div class="modal-content large">
+            <span class="close-btn">&times;</span>
+            <h3 id="rules-modal-title">Comparaison des Règles</h3>
+            <div id="rules-content-panel"></div>
         </div>
     </div>
 

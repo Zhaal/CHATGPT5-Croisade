@@ -195,6 +195,10 @@ label {
     padding: 8px 5px;
 }
 
+.player-card-actions .rules-btn {
+    flex-basis: 100%;
+}
+
 
 /* --- Vue Fiche de Progression (Roster View) --- */
 .roster-header {
