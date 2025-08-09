@@ -132,71 +132,71 @@ const deathGuardCrusadeRules = {
         { name: "Vile Possession", desc: "Chaque fois que vous ajoutez une unité de VÉHICULE à votre force de Croisade, ajoutez le mot-clé DÉMON, elle gagne immédiatement 6PX (rang Éprouvé) et choisissez-lui un Honneur de Bataille normalement." }
     ],
     
-    // CORRIGÉ : Mise à jour des Intentions.
+    // MISE À JOUR : Intentions spécifiques à la Death Guard.
     intents: [
-        { 
-            name: "Semer les Graines de la Corruption", 
-            desc: "Au début de la bataille, choisissez un pion d'objectif. À la fin de votre tour, pour chaque unité de PERSONNAGE ou VECTEUR DRONE que vous contrôlez et qui est à portée d'un pion d'objectif, si l'unité n'est pas Ébranlée, vous gagnez 1PX (max 3PX par unité)." 
-        },
-        { 
-            name: "Vecteurs Malveillants", 
-            desc: "À la fin de la bataille, jetez 1D6 pour chaque unité ennemie détruite au résultat 1 sur le tableau des blessures de combat. Sur 5+, baissez de 1 le Taux de Survie de votre peste, et choisissez 1 unité de votre armée qui a survécu pour gagner 3PX."
+        {
+            name: "Semer les Graines de la Corruption",
+            desc: "Au début de la bataille, choisissez un pion objectif dans votre zone de déploiement, un dans le No Man’s Land, et un dans la zone de déploiement adverse. À la fin de votre tour, pour chacun de ces pions, si une unité d’INFANTERIE de la DEATH GUARD de votre armée est à portée, qu’aucune unité ennemie n’est à portée et qu’il n’est pas ensemencé, ce pion objectif devient ensemencé et l’unité gagne 2PX. À la fin de la bataille, si deux pions ont été ensemencés, jetez 1D6 : sur 4+, ajoutez 1 à la caractéristique de Fécondité de votre monde. Si trois pions ont été ensemencés, ajoutez 1 à la caractéristique de Fécondité sans jeter de dé."
         },
         {
             name: "Moisson Virale",
-            desc: "Au début de votre phase de Tir, choisissez 1 unité d'INFANTERIE DG éligible à portée d'un objectif. Sur 4+, elle peut 'clamer le vecteur'. À la fin de votre tour, si elle est toujours à portée, elle gagne 1PX (max 3PX). À la fin de la bataille, jetez 1D6 + nombre de succès (max +3), et augmentez l'Adaptabilité de votre peste du résultat."
+            desc: "Au début de la bataille, chaque pion objectif du No Man’s Land représente un Vecteur Cible. Au début de votre phase de Tir, choisissez une unité d’INFANTERIE de la DEATH GUARD de votre armée (unités Ébranlées exclues) qui est éligible pour tirer et à portée d’un ou plusieurs Vecteurs Cibles ; l’unité peut tenter d’exhumer un de ces Vecteurs Cibles. Jusqu’à la fin de votre tour, cette unité n’est pas éligible pour tirer ni déclarer une charge. Si, à la fin de votre tour, elle est à portée du Vecteur Cible choisi et qu’aucune unité ennemie n’est à portée de celui-ci (AÉRODYNES exclus), l’unité gagne 1PX (max 3PX par unité). À la fin de la bataille, jetez 1D6 en ajoutant 1 par tentative d’exhumation réussie : sur 7+, ajoutez 1 à la caractéristique d’Adaptabilité de votre peste."
+        },
+        {
+            name: "Vecteurs Malgré Eux",
+            desc: "À la fin de la bataille, jetez 1D6 pour chaque unité ennemie sur le champ de bataille, en ajoutant 2 au résultat si l’unité est en dessous de son Effectif Initial. S’il y a au moins un résultat de 6+, ajoutez 1 à la caractéristique de Taux de Survie de votre peste et choisissez une unité de la DEATH GUARD de votre armée qui n’a pas été détruite ; cette unité gagne 3PX."
         },
         {
             name: "Infâme Recherche",
-            desc: "Chaque fois qu'une unité DG détruit une unité ennemie, gagnez 1PX de recherche (max 3PX par unité). À la fin de la bataille, si votre total est 1-3, vous pouvez 'Adapter les Toxines'. S'il est de 4+, vous pouvez le faire deux fois."
+            desc: "Chaque fois qu’une unité de la DEATH GUARD de votre armée détruit une unité ennemie Affligée, ajoutez 1 à votre compte de recherche, et l’unité gagne 1 PEX (jusqu’à un maximum de 3 PEX par unité). À la fin de la bataille, si votre compte de recherche est 1-3, vous pouvez Adapter les Toxines. Si votre compte de recherche est 4+, vous pouvez Adapter les Toxines deux fois."
         }
     ],
-    
-    // CORRIGÉ : Mise à jour des Réquisitions.
+
+    // MISE À JOUR : Réquisitions disponibles pour la Death Guard.
     requisitions: [
-        { name: "Sublimation Souillée (1 PR)", desc: "À la fin d'une bataille, au lieu de jeter sur un tableau de séquelles, vous pouvez choisir que l'unité reçoive un Don de Nurgle (Bienfait de Nurgle)." },
-        { name: "Ascension Putride (2 PR)", desc: "Quand une unité PERSONNAGE (hors PRINCE DÉMON/LÉGENDAIRE) gagne la Séquelle 'Dégénérescence', remplacez-la par un PRINCE DÉMON. Il conserve l'équipement, les honneurs et les PX." },
-        { name: "Mise en Culture Soignée (2 PR)", desc: "À la fin d'une bataille, avant la Voie de la Contagion, la prochaine fois, résolvez l'étape de 'Mise en Culture' deux fois." },
-        { name: "Fruits du Chaudron (1 PR)", desc: "À la fin d'une bataille, vous pouvez 'Adapter les Toxines'." },
-        { name: "Rémission Simulée (1 PR)", desc: "À la fin d'une bataille, si vous avez perdu, jetez 1D6. Sur 5+, ajoutez 1 à la Densité de Population de votre monde." },
-        { name: "Puissance Misaimable (2 PR)", desc: "Avant une bataille, un VÉHICULE avec la Séquelle 'Épave' la perd et gagne le Trait de Bataille 'Épave' à la place." }
+        { name: "Sublimation Souillée — 1PR", desc: "Achetez cette Réquisition à la fin d’une bataille, si vous avez gagné cette bataille. Vous pouvez Élaborer votre Variant." },
+        { name: "Fruits du Chaudron — 1PR", desc: "Achetez cette Réquisition à la fin d’une bataille. Vous pouvez Adapter les Toxines." },
+        { name: "Rémission Simulée — 1PR", desc: "Achetez cette Réquisition à la fin d’une bataille, si vous avez gagné cette bataille. Ajoutez 1 à la caractéristique de Densité de Population de votre monde." },
+        { name: "Mise en Culture Soignée — 2PR", desc: "Achetez cette Réquisition à la fin d’une bataille, avant de suivre la Voie de la Contagion. La prochaine fois que vous suivez la Voie de la Contagion, résolvez l’étape de Mise en Culture deux fois." },
+        { name: "Ascension Putride — 2PR", desc: "Achetez cette Réquisition quand une unité de PERSONNAGE de la DEATH GUARD de votre force de Croisade (unités de DÉMONS exclues) qui a trois Bienfaits de Nurgle atteint le rang Héroïque ou Légendaire. Retirez l’unité de votre force de Croisade et remplacez-la par 1 PRINCE DÉMON de la DEATH GUARD ou PRINCE DÉMON ailé de la DEATH GUARD. La nouvelle unité a le même nombre d’Honneurs de Bataille et de PX que l’unité qu’elle remplace et peut conserver les Bienfaits de Nurgle. Aucune Séquelle de Combat n’est conservée. Vous ne pouvez pas acheter cette Réquisition si cela dépasse votre Limite de Ressources." },
+        { name: "Puissance Misérable — 2PR", desc: "Achetez cette Réquisition avant une bataille. Choisissez 1 unité de VÉROLEUX de votre armée de Croisade. Générez un Trait de Bataille pour l’unité, même si les VÉROLEUX ne peuvent normalement pas en avoir. Jusqu’à la fin de la bataille, cette unité de VÉROLEUX a ce Trait de Bataille." }
     ],
 
-    // CORRIGÉ : Mise à jour des Reliques.
+    // MISE À JOUR : Reliques de Croisade disponibles.
     relics: {
         artificer: [
-            { name: "Encensoir Munificent", desc: "Chaque fois que le porteur utilise son aptitude Destruction Néfaste, vous pouvez relancer le jet de dé. De plus, les blessures mortelles ne sont infligées que si la cible est à 2\" ou moins.", cost: 1 },
-            { name: "Ronge-grimoire", desc: "Chaque fois que le porteur est affecté par une Séquelle de Combat, il se sépare de l'unité. Chaque fois qu'il gagne un Point de Réquisition, vous pouvez lui faire perdre 1 point de Séquelle.", cost: 1 },
+            { name: "Encensoir Munificent", desc: "Chaque fois qu’une figurine amie avec l’aptitude Destruction Néfaste à 9\" du porteur est détruite, le porteur peut utiliser cette Relique de Croisade. En ce cas, ajoutez 2 au jet pour déterminer si des blessures mortelles sont infligées par l’aptitude Destruction Néfaste de la figurine. Vous ne pouvez pas cibler la figurine concernée avec le Stratagème Détonation Putride.", cost: 1 },
+            { name: "Ronge-grimoire", desc: "Chaque fois qu’une unité ennemie à 9\" de l’unité du porteur rate un test d’Ébranlement, jetez 1D6 : sur 4+, vous gagnez 1 point de Réquisition.", cost: 1 },
             { name: "Armure Putréforgée", desc: "Le porteur a une caractéristique de Sauvegarde de 2+.", cost: 1 }
         ],
         antique: [
-            { name: "Orbe du Déclin", desc: "Une fois par bataille, au début de la phase de Tir de votre adversaire, choisissez une unité ennemie à 18\" et lancez 6D6 ; pour chaque 4+, l'unité subit 1 blessure mortelle." , cost: 2 },
-            { name: "Coffret de Corruption", desc: "À la fin de la bataille, si le porteur est sur le champ de bataille, gagnez D3 Points de Contagion. Si vous avez gagné et détruit une unité dans la zone de déploiement adverse, la prochaine fois que vous suivez la Voie de la Contagion, vous pouvez relancer tous les jets.", cost: 2 }
+            { name: "Orbe du Déclin", desc: "Une fois par bataille, quand vous ciblez l’unité du porteur avec le Stratagème Grenade, le porteur peut utiliser cette Relique de Croisade. En ce cas, jusqu’à ce que ce Stratagème ait été résolu, ajoutez 2 au résultat de chaque dé lancé pour ce Stratagème.", cost: 2 },
+            { name: "Coffret de Corruption", desc: "Le porteur a l’aptitude Destruction Néfaste D3. De plus, à la fin de la bataille, si l’unité du porteur est entièrement dans la zone de déploiement adverse, la prochaine fois que vous suivez la Voie de la Contagion, vous pouvez passer l’étape de Contre-agents.", cost: 2 }
         ],
         legendaire: [
-             { name: "Cœur Putride", desc: "Le porteur a Inexorable et Insensible à la Douleur 5+. Augmentez sa Portée de Contagion de 3\". Une fois par bataille, dans votre phase de Commandement, le porteur peut augmenter la Portée de Contagion de toute l'armée de 3\" jusqu'à la fin de la bataille.", cost: 3 }
+            { name: "Cœur Putride", desc: "Le porteur a l’aptitude Insensible à la Douleur 5+. De plus, ajoutez 6\" à la Portée de Contagion des figurines de l’unité du porteur.", cost: 3 }
         ]
     },
 
-    // CORRIGÉ : Mise à jour complète des tables de Traits de Bataille.
+    // MISE À JOUR : Tables de Traits de Bataille spécifiques.
     battleTraits: {
         "INFANTERIE": [
-            { name: "Giclecrasses (Résultat 1)", desc: "Chaque fois que cette unité effectue une attaque de mêlée, un jet de touche non modifié de 6 réussit automatiquement." },
-            { name: "Brume Suffocante (Résultat 2)", desc: "Une fois par bataille, au début de la phase de tir adverse, cette unité peut faire un mouvement Normal, d'Avance ou de Retraite. Jusqu'à la fin de la phase, les attaques de tir qui la ciblent ont -1 pour toucher." },
-            { name: "Cornes (Résultat 3)", desc: "Chaque fois que cette unité termine un mouvement de Charge, choisissez 1 unité ennemie à Portée d'Engagement. Pour chaque figurine de votre unité, sur 4+, l'ennemi subit 1 blessure mortelle." },
-            { name: "Masse Impavide (Résultat 4)", desc: "Ajoutez 1 à la caractéristique de Capacité de Tir (BS) des armes de tir de cette unité." },
-            { name: "Parasites de la Peste Guillerets (Résultat 5)", desc: "Les attaques à distance de cette unité ont l'aptitude [IGNORE LE COUVERT]." },
-            { name: "Cils Frétillants (Résultat 6)", desc: "Chaque fois que vous utilisez le Stratagème 'Tir de Contre-charge' sur cette unité, des touches sont causées sur des jets de 5+ en plus des touches normales." }
+            { name: "Giclecrasse", desc: "À chaque attaque de mêlée d’une figurine de cette unité, vous pouvez ignorer certains ou tous les modificateurs au jet de Touche, au jet de Blessure et à la caractéristique de Pénétration d’Armure." },
+            { name: "Brume Suffocante", desc: "Une fois par bataille, quand cette unité est choisie pour faire un mouvement Normal, d’Avance ou de Retraite, est placée sur le champ de bataille, ou déclare une charge, elle peut utiliser ce Trait de Bataille. Jusqu’à la fin du tour, les unités ennemies ne peuvent pas utiliser le Stratagème Tir en État d’Alerte pour tirer sur cette unité." },
+            { name: "Cornes", desc: "Chaque fois que cette unité finit un mouvement de Charge, choisissez 1 unité ennemie à Portée d’Engagement d’elle et jetez 1 D6 pour chaque figurine de cette unité qui est à Portée d’Engagement de l’unité ennemie : pour chaque résultat de 5+, l’unité ennemie subit 1 blessure mortelle." },
+            { name: "Masse Impavide", desc: "Ajoutez 1 à la caractéristique de Capacité de Tir des armes de tir dont sont équipées les figurines de cette unité." },
+            { name: "Parasites de la Peste Guillerets", desc: "Les armes de tir dont sont équipées les figurines de cette unité ont l’aptitude [IGNORE LE COUVERT]." },
+            { name: "Cils Frétillants", desc: "Chaque fois que vous ciblez cette unité avec le Stratagème Tir en État d’Alerte, des touches sont causées sur des jets de Touche non modifiés de 5+ en résolvant ce Stratagème." }
         ],
         "DÉMON": [
-            { name: "Bubons Infectieux (Résultat 1-2)", desc: "Chaque fois qu'une attaque de mêlée qui cible cette unité obtient un 1 ou 2 pour toucher, elle échoue." },
-            { name: "Gerbespores (Résultat 3-4)", desc: "Chaque fois que cette unité termine un mouvement de Retraite, choisissez 1 unité ennemie qui était à Portée d'Engagement. Sur 4+, elle subit 1 blessure mortelle." },
-            { name: "Souillure Brillante (Résultat 5-6)", desc: "À votre phase de Tir, après que cette unité a tiré, choisissez 1 unité ennemie touchée. Jusqu'à la fin du tour, chaque fois qu'un DÉMON DE NURGLE ami cible cette unité, relancez les jets de touche de 1." }
+            { name: "Bubons Infectieux", desc: "À chaque attaque de mêlée qui cible cette unité, après que l’unité attaquante a résolu ses attaques, jetez 1 D6 (jusqu’à un maximum de six D6 par unité attaquante) : pour chaque résultat de 5+, l’unité attaquante subit 1 blessure mortelle." },
+            { name: "Gerbespores", desc: "Chaque fois que cette unité finit un mouvement de Retraite, choisissez 1 unité ennemie qui était à Portée d’Engagement de cette unité au début de la phase. Jetez trois D6 : pour chaque résultat de 4+, l’unité ennemie subit 1 blessure mortelle." },
+            { name: "Souillure Brillante", desc: "À votre phase de Tir, après que cette unité a tiré, choisissez 1 unité ennemie visible touchée par une ou plusieurs de ses attaques. Jusqu’à la fin de la phase, à chaque attaque d’une figurine de DÉMON de NURGLE amie qui cible l’unité, relancez tout jet de Touche de 1." }
         ],
         "VÉHICULE": [
-            { name: "Excroissances Blindées (Résultat 1-2)", desc: "À chaque attaque qui cible cette unité, si la Force de l'attaque est supérieure à l'Endurance de l'unité, soustrayez 1 au jet de blessure." },
-            { name: "Maladies Magistrales (Résultat 3-4)", desc: "Ajoutez 6\" à la portée des armes de cette unité. (Relancez si l'unité n'a pas d'armes de tir à Touches Fatales)." },
-            { name: "Membres Grouillants (Résultat 5-6)", desc: "Lors d'un mouvement normal, d'avance ou de retraite, cette unité peut se déplacer à travers les figurines ennemies. Les figurines ennemies ne peuvent pas finir un mouvement à Portée d'Engagement de cette unité sans réussir un test de Fuite Désespérée." }
+            { name: "Excroissances Blindées", desc: "À chaque attaque qui cible cette unité, si la caractéristique de Force de l’attaque est supérieure à la caractéristique d’Endurance de cette unité, soustrayez 1 au jet de Blessure." },
+            { name: "Maladies Magistrales", desc: "Ajoutez 6\" à la caractéristique de Portée des armes de tir à Touches Fatales dont sont équipées les figurines de cette unité. Relancez ce résultat si votre unité n’a aucune arme de tir à Touches Fatales." },
+            { name: "Membres Grouillants", desc: "Chaque fois qu’une figurine de cette unité fait un mouvement Normal, d’Avance ou de Retraite, elle peut passer à travers les figurines ennemies. Ce faisant, elle peut passer à Portée d’Engagement de telles figurines mais ne peut pas finir ce mouvement à Portée d’Engagement d’elles, et tout test de Fuite Désespérée est automatiquement réussi." }
         ]
     },
 
