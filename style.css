@@ -1093,6 +1093,15 @@ label {
 }
 
 /* --- Responsivité --- */
+#fullscreen-btn {
+    display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    #fullscreen-btn {
+        display: inline-block;
+    }
+}
 @media (max-width: 900px) {
     .unit-card-body { grid-template-columns: 1fr; }
     .upgrades-grid { grid-template-columns: 1fr; }
