@@ -689,6 +689,36 @@
         </div>
     </div>
 
+    <div id="online-storage-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="online-storage-title">Gestion en Ligne</h3>
+
+            <div class="form-group">
+                <label for="existing-saves-select">Sauvegardes Existantes :</label>
+                <select id="existing-saves-select">
+                    <option value="">-- Choisir une sauvegarde --</option>
+                </select>
+            </div>
+
+            <div id="save-section">
+                <p style="text-align: center; margin: 10px 0;">- OU -</p>
+                <div class="form-group">
+                    <label for="new-save-name-input">Nom de la Nouvelle Sauvegarde :</label>
+                    <input type="text" id="new-save-name-input" placeholder="Entrez un nom unique...">
+                </div>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button id="online-storage-cancel-btn" class="btn-secondary">Annuler</button>
+                <div>
+                    <button id="confirm-load-online-btn" class="btn-primary">Charger</button>
+                    <button id="confirm-save-online-btn" class="btn-primary">Sauvegarder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="rules-modal" class="modal hidden">
         <div class="modal-content large">
             <span class="close-btn">&times;</span>
