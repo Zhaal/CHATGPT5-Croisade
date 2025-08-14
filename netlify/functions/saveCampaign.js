@@ -1,4 +1,4 @@
-// CommonJS + import ESM + CORS + contexte explicite (siteID/token)
+import { getStore } from "@netlify/blobs";
 
 function corsHeaders() {
   return {
@@ -7,6 +7,7 @@ function corsHeaders() {
     "Access-Control-Allow-Headers": "Content-Type",
   };
 }
+
 function respond(statusCode, json) {
   return {
     statusCode,
@@ -15,29 +16,30 @@ function respond(statusCode, json) {
   };
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: corsHeaders() };
-  if (event.httpMethod !== "POST") return respond(405, { error: "Method Not Allowed" });
+export const handler = async (event) => {
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers: corsHeaders() };
+  }
+  if (event.httpMethod !== "POST") {
+    return respond(405, { error: "Method Not Allowed" });
+  }
 
   const key = (event.queryStringParameters && event.queryStringParameters.key) || "default";
 
   try {
-    const mod = await import("@netlify/blobs");
-    const getStore = mod.getStore || mod.default?.getStore;
-    if (!getStore) throw new Error("Netlify Blobs: getStore introuvable.");
+    const store = getStore("campaigns");
+    const body = event.body || "{}";
 
-    const siteID = process.env.BLOBS_SITE_ID;
-    const token  = process.env.BLOBS_TOKEN;
-    console.log("saveCampaign env:", !!siteID, !!token); // doit afficher true true
-    if (!siteID || !token) throw new Error("BLOBS_SITE_ID ou BLOBS_TOKEN manquant(s).");
+    // The body is already a JSON string from the fetch, no need to re-parse if it's already an object
+    // But since we receive a string, we need to parse it.
+    let dataToStore;
+    try {
+        dataToStore = JSON.parse(body);
+    } catch (e) {
+        return respond(400, { error: "Bad Request: Invalid JSON body."});
+    }
 
-    const store = getStore({ name: "campaigns", siteID, token });
-
-    const body =
-      event.headers["content-type"]?.includes("application/json")
-        ? (event.body || "{}")
-        : "{}";
-    await store.setJSON(key, JSON.parse(body));
+    await store.setJSON(key, dataToStore);
     return respond(200, { success: true, message: "saved" });
   } catch (err) {
     console.error("saveCampaign error:", err);

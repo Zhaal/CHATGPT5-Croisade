@@ -1657,4 +1657,90 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification(notificationMessage, 'success', 7000);
         }
     });
+
+    //======================================================================
+    //  GESTION DES SAUVEGARDES EN LIGNE
+    //======================================================================
+
+    const onlineSaveBtn = document.getElementById('online-save-btn');
+    const onlineLoadBtn = document.getElementById('online-load-btn');
+
+    async function saveCampaignOnline() {
+        const activeSaveName = getActiveSaveName();
+        if (!activeSaveName) {
+            showNotification("Veuillez d'abord sauvegarder localement pour avoir un nom de campagne actif.", "warning");
+            return;
+        }
+
+        onlineSaveBtn.disabled = true;
+        onlineSaveBtn.textContent = 'Sauvegarde...';
+
+        try {
+            const response = await fetch(`/.netlify/functions/saveCampaign?key=${encodeURIComponent(activeSaveName)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(campaignData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Erreur HTTP ${response.status}`);
+            }
+
+            showNotification(`Campagne "<b>${activeSaveName}</b>" sauvegardée en ligne avec succès !`, 'success');
+            closeModal(saveLoadModal);
+
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde en ligne:", error);
+            showNotification(`Échec de la sauvegarde en ligne : ${error.message}`, 'error');
+        } finally {
+            onlineSaveBtn.disabled = false;
+            onlineSaveBtn.textContent = 'Sauvegarder en ligne';
+        }
+    }
+
+    async function loadCampaignOnline() {
+        const key = prompt("Entrez le nom de la sauvegarde en ligne que vous souhaitez charger :");
+        if (!key) return;
+
+        onlineLoadBtn.disabled = true;
+        onlineLoadBtn.textContent = 'Chargement...';
+
+        try {
+            const response = await fetch(`/.netlify/functions/loadCampaign?key=${encodeURIComponent(key)}`);
+
+            if (response.status === 404) {
+                 showNotification(`Aucune sauvegarde en ligne trouvée pour "<b>${key}</b>".`, 'warning');
+                 return;
+            }
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Erreur HTTP ${response.status}`);
+            }
+
+            const loadedData = await response.json();
+
+            const newLocalName = prompt("Sauvegarde en ligne chargée. Entrez un nom pour la sauvegarder localement :", `${key}-online`);
+            if (newLocalName) {
+                campaignData = loadedData;
+                await saveCampaignAs(newLocalName);
+                showNotification(`Campagne "<b>${key}</b>" chargée et sauvegardée localement sous "<b>${newLocalName}</b>". Rechargement...`, 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            }
+
+        } catch (error) {
+            console.error("Erreur lors du chargement en ligne:", error);
+            showNotification(`Échec du chargement en ligne : ${error.message}`, 'error');
+        } finally {
+            onlineLoadBtn.disabled = false;
+            onlineLoadBtn.textContent = 'Charger la sauvegarde en ligne';
+        }
+    }
+
+    if (onlineSaveBtn) {
+        onlineSaveBtn.addEventListener('click', saveCampaignOnline);
+    }
+    if (onlineLoadBtn) {
+        onlineLoadBtn.addEventListener('click', loadCampaignOnline);
+    }
 });
