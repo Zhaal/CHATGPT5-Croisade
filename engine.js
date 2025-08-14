@@ -817,8 +817,127 @@ const handleImport = (event) => {
 
 };
 
-const saveDataOnline = async () => {
-    const key = prompt("Identifiant de sauvegarde en ligne :");
+const loadInitialCampaign = async (key = 'warp') => {
+    try {
+        const response = await fetch(`/.netlify/functions/loadCampaign?key=${encodeURIComponent(key)}`);
+        if (!response.ok) {
+            // Fail silently if the "warp" save doesn't exist
+            return;
+        }
+        const data = await response.json();
+        if (data && data.players) {
+            campaignData = data;
+            migrateData();
+            saveData();
+            renderPlayerList();
+            switchView('list');
+            console.log(`Successfully loaded initial campaign '${key}'`);
+        }
+    } catch (err) {
+        // Also fail silently on network errors etc. during initial load
+        console.error(`Could not load initial campaign '${key}':`, err);
+    }
+}
+
+const openOnlineStorageModal = async (mode) => {
+    const modal = document.getElementById('online-storage-modal');
+    const title = document.getElementById('online-storage-title');
+    const select = document.getElementById('existing-saves-select');
+    const newNameInput = document.getElementById('new-save-name-input');
+    const saveSection = document.getElementById('save-section');
+    const loadBtn = document.getElementById('confirm-load-online-btn');
+    const saveBtn = document.getElementById('confirm-save-online-btn');
+    const cancelBtn = document.getElementById('online-storage-cancel-btn');
+    const closeBtn = modal.querySelector('.close-btn');
+
+    // Reset and populate dropdown
+    select.innerHTML = '<option value="">-- Choisir une sauvegarde --</option>';
+    try {
+        const response = await fetch('/.netlify/functions/listCampaigns');
+        const { keys } = await response.json();
+        if (keys && keys.length > 0) {
+            keys.sort().forEach(key => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = key;
+                select.appendChild(option);
+            });
+        }
+    } catch (err) {
+        showNotification("Impossible de lister les sauvegardes en ligne.", 'error');
+        return; // Don't open modal if we can't list saves
+    }
+
+    // Configure modal for Save or Load mode
+    if (mode === 'save') {
+        title.textContent = "Sauvegarder en Ligne";
+        saveSection.style.display = 'block';
+        newNameInput.style.display = 'block';
+        saveBtn.style.display = 'inline-block';
+        loadBtn.style.display = 'none';
+    } else { // mode === 'load'
+        title.textContent = "Charger depuis le Web";
+        saveSection.style.display = 'none';
+        newNameInput.style.display = 'none';
+        saveBtn.style.display = 'none';
+        loadBtn.style.display = 'inline-block';
+    }
+
+    openModal(modal);
+
+    // --- Event Listeners ---
+    const handleSave = async () => {
+        const newName = newNameInput.value.trim();
+        const selectedName = select.value;
+        let keyToSave = newName || selectedName;
+
+        if (!keyToSave) {
+            showNotification("Veuillez entrer un nom pour la nouvelle sauvegarde ou en sélectionner une existante.", 'warning');
+            return;
+        }
+
+        if (newName && selectedName) {
+            showNotification("Veuillez choisir entre un nouveau nom et une sauvegarde existante, pas les deux.", 'warning');
+            return;
+        }
+
+        if (selectedName) {
+            const confirmed = await showConfirm("Confirmer l'Écrasement", `Êtes-vous sûr de vouloir écraser la sauvegarde "<b>${selectedName}</b>" ?`);
+            if (!confirmed) return;
+        }
+
+        await performSave(keyToSave);
+        cleanupAndClose();
+    };
+
+    const handleLoad = async () => {
+        const keyToLoad = select.value;
+        if (!keyToLoad) {
+            showNotification("Veuillez sélectionner une sauvegarde à charger.", 'warning');
+            return;
+        }
+        await performLoad(keyToLoad);
+        cleanupAndClose();
+    };
+
+    const cleanupAndClose = () => {
+        saveBtn.removeEventListener('click', handleSave);
+        loadBtn.removeEventListener('click', handleLoad);
+        cancelBtn.removeEventListener('click', cleanupAndClose);
+        closeBtn.removeEventListener('click', cleanupAndClose);
+        closeModal(modal);
+    };
+
+    saveBtn.addEventListener('click', handleSave, { once: true });
+    loadBtn.addEventListener('click', handleLoad, { once: true });
+    cancelBtn.addEventListener('click', cleanupAndClose, { once: true });
+    closeBtn.addEventListener('click', cleanupAndClose, { once: true });
+};
+
+const saveDataOnline = () => openOnlineStorageModal('save');
+const loadDataOnline = () => openOnlineStorageModal('load');
+
+async function performSave(key) {
     if (!key) return;
     try {
         const response = await fetch(`/.netlify/functions/saveCampaign?key=${encodeURIComponent(key)}`, {
@@ -829,8 +948,7 @@ const saveDataOnline = async () => {
         const result = await response.json().catch(() => ({}));
 
         if (response.ok) {
-            const detail = result.details || result.message || '';
-            showNotification(`Sauvegarde en ligne réussie ! ${detail}`, 'success');
+            showNotification(`Sauvegarde en ligne "<b>${key}</b>" réussie !`, 'success');
         } else {
             const detail = result.details || result.error || 'Erreur réseau';
             showNotification(`Échec de la sauvegarde en ligne : ${detail}`, 'error');
@@ -839,10 +957,9 @@ const saveDataOnline = async () => {
         console.error('Erreur sauvegarde en ligne :', err);
         showNotification(`Échec de la sauvegarde en ligne : ${err.message}`, 'error');
     }
-};
+}
 
-const loadDataOnline = async () => {
-    const key = prompt("Identifiant de la sauvegarde à charger :");
+async function performLoad(key, isSilent = false) {
     if (!key) return;
     try {
         const response = await fetch(`/.netlify/functions/loadCampaign?key=${encodeURIComponent(key)}`);
@@ -858,9 +975,13 @@ const loadDataOnline = async () => {
         saveData();
         renderPlayerList();
         switchView('list');
-        showNotification("Chargement en ligne réussi !", 'success');
+        if (!isSilent) {
+            showNotification(`Chargement de "<b>${key}</b>" réussi !`, 'success');
+        }
     } catch (err) {
-        console.error('Erreur chargement en ligne :', err);
-        showNotification(`Échec du chargement en ligne : ${err.message}`, 'error');
+        console.error(`Erreur chargement en ligne pour la clé "${key}":`, err);
+        if (!isSilent) {
+            showNotification(`Échec du chargement de "<b>${key}</b>": ${err.message}`, 'error');
+        }
     }
-};
+}
