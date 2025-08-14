@@ -240,7 +240,7 @@ const factionUnits = {
         { name: "Kor'sarro Khan", cost: 70 },
         { name: "Land Raider", cost: 240 },
         { name: "Land Raider Crusader", cost: 220 },
-        { name: "Land Raider Redeemer", cost: 85 },
+        { name: "Land Raider Redeemer", cost: 285 },
         { name: "Lieutenant", cost: 65 },
         { name: "Lieutenant avec Arme Combinée", cost: 70 },
         { name: "Lieutenant en Armure Phobos", cost: 55 },
@@ -313,7 +313,6 @@ const factionUnits = {
         { name: "Équipe de Brécheurs", cost: 100 },
         { name: "Équipe de Cibleurs", cost: 90 },
         { name: "Équipe de Tir Furtive", cost: 70 },
-        { name: "Équipe de Tir Furtive", cost: 80 },
         { name: "Éthéré", cost: 50 },
         { name: "Exo-armure Ghostkeel", cost: 160 },
         { name: "Exo-armure Riptide", cost: 190 },
@@ -892,10 +891,10 @@ const factionUnits = {
 // NOUVEL AJOUT : Règles de croisade spécifiques aux Démons du Chaos (Légion de l'Ombre)
 const chaosDaemonsCrusadeRules = {
     legionOfShadowEnhancements: [
-        { name: "Ombres Bondissantes", desc: "Les figurines de l’unité du porteur ont l’aptitude Éclaireurs 9”.", cost: 1, crusadePointCost: 1 },
-        { name: "Manteau d'Obscurité (Aura)", desc: "Tant qu’une unité ennemie est à Portée d’Engagement de l’unité du porteur, soustrayez 1 à la caractéristique de Contrôle d’Objectif des figurines de l’unité ennemie.", cost: 1, crusadePointCost: 1 },
-        { name: "Se Fondre dans les Ténèbres", desc: "À la fin de la phase de Combat, si l’unité du porteur a détruit une ou plusieurs unités ennemies à cette phase et n’est à Portée d’Engagement d’aucune unité ennemie, vous pouvez retirer l’unité du porteur du champ de bataille et la placer en Réserve Stratégique.", cost: 1, crusadePointCost: 1 },
-        { name: "Malveillance Incarnée", desc: "Au début de la phase de Combat, choisissez 1 unité ennemie à Portée d’Engagement de l’unité du porteur et jetez 1D6 : sur 2-5, l’unité ennemie subit D3 blessures mortelles ; sur 6, l’unité ennemie subit 3 blessures mortelles.", cost: 1, crusadePointCost: 1 }
+        { name: "Ombres Bondissantes", desc: "Les figurines de l’unité du porteur ont l’aptitude Éclaireurs 9”.", cost: 25, crusadePointCost: 1 },
+        { name: "Manteau d'Obscurité (Aura)", desc: "Tant qu’une unité ennemie est à Portée d’Engagement de l’unité du porteur, soustrayez 1 à la caractéristique de Contrôle d’Objectif des figurines de l’unité ennemie.", cost: 20, crusadePointCost: 1 },
+        { name: "Se Fondre dans les Ténèbres", desc: "À la fin de la phase de Combat, si l’unité du porteur a détruit une ou plusieurs unités ennemies à cette phase et n’est à Portée d’Engagement d’aucune unité ennemie, vous pouvez retirer l’unité du porteur du champ de bataille et la placer en Réserve Stratégique.", cost: 30, crusadePointCost: 1 },
+        { name: "Malveillance Incarnée", desc: "Au début de la phase de Combat, choisissez 1 unité ennemie à Portée d’Engagement de l’unité du porteur et jetez 1D6 : sur 2-5, l’unité ennemie subit D3 blessures mortelles ; sur 6, l’unité ennemie subit 3 blessures mortelles.", cost: 25, crusadePointCost: 1 }
     ]
 };
 
@@ -903,43 +902,34 @@ const chaosDaemonsCrusadeRules = {
 const crusadeRules = {
     battleTraits: {
         Personnage: [
-            { name: "Diriger en Première Ligne", desc: "Cette unité passe les tests de Moral automatiquement si elle est à 6\" d'une unité MONSTRE ou VÉHICULE amie qui n'est pas Ébranlée." },
-            { name: "Immunisé aux Horreurs", desc: "Cette unité peut relancer les tests de Moral." },
-            { name: "Grand Acquisiteur", desc: "Ajoutez 3 à la caractéristique de Contrôle d'Objectif de la figurine PERSONNAGE de cette unité." },
-            { name: "Rôdeur Conquérant", desc: "Tant que cette unité est à portée d'un pion d'objectif, elle gagne l'aptitude Discrétion." },
-            { name: "Constitution Héroïque", desc: "Ajoutez 1 à la caractéristique de PV de cette unité." },
-            { name: "Duelliste", desc: "Le champ d'attraction de nimbus de force est amélioré. À chaque attaque de mêlée effectuée par une figurine ennemie qui cible cette unité, si l'attaquant est à portée d'Engagement de cette unité, il subit 1 blessure mortelle." }
+            { name: "Diriger en Première Ligne", desc: "Jusqu'à la fin de la bataille, ajoutez 1 aux jets de Blessures pour les attaques de cette figurine qui ciblent une unité ennemie à Portée d'Engagement d'une ou plusieurs unités amies." },
+            { name: "Immunisé aux Horreurs", desc: "Ajoutez 2 à la caractéristique de Commandement de la figurine et de son unité." },
+            { name: "Présence Totémique", desc: "Les figurines de cette unité ont l'aptitude Présence Inspirante." }
         ],
-        Vehicule: [ 
-            { name: "Protections Durcies", desc: "Dans les environnements tordus de cette zone de guerre, cette unité a su renforcer ses protections. Les figurines de cette unité ont l'aptitude insensible à la Douleur 6+." },
-            { name: "Présence Totémique", desc: "Cette unité est considérée comme une icône de la victoire par ses camarades. Chaque fois que cette unité contrôle un pion d'objectif, ajoutez 1 à la caractéristique de Contrôle d'Objectif de 1 figurine de cette unité." },
-            { name: "Chasseur de Chars", desc: "À chaque attaque effectuée par une figurine de cette unité qui cible une unité VÉHICULE ennemie, vous pouvez relancer le jet de blessure." },
-            { name: "Explorateur Obstiné", desc: "Les figurines de cette unité ne sont pas ralenties par les débris et les obstacles et ignorent toutes les règles qui pénalisent le mouvement ou les jets d'Avance pour le terrain difficile." },
-            { name: "Lourdement Blindé", desc: "Soustraire 1 à la caractéristique de Dégâts des attaques de mêlée." },
-            { name: "Faucheur", desc: "À chaque attaque de mêlée effectuée par une figurine de cette unité MONTRÉE, relancez tout jet de touche de 1." }
+        Vehicule: [
+            { name: "Protections Durcies", desc: "Augmentez la caractéristique de Sauvegarde d'Armure de la figurine." },
+            { name: "Rôdeur Conquérant", desc: "Ajoutez 1 à la caractéristique de Mouvement de la figurine." },
+            { name: "Grand Acquisiteur", desc: "Si la figurine est à portée d'un objectif à la fin de votre tour, gagnez 1 PC." }
         ],
-        Monstre: [ 
-            { name: "Protections Durcies", desc: "Dans les environnements tordus de cette zone de guerre, cette unité a su renforcer ses protections. Les figurines de cette unité ont l'aptitude insensible à la Douleur 6+." },
-            { name: "Présence Totémique", desc: "Cette unité est considérée comme une icône de la victoire par ses camarades. Chaque fois que cette unité contrôle un pion d'objectif, ajoutez 1 à la caractéristique de Contrôle d'Objectif de 1 figurine de cette unité." },
-            { name: "Chasseur de Chars", desc: "À chaque attaque effectuée par une figurine de cette unité qui cible une unité VÉHICULE ennemie, vous pouvez relancer le jet de blessure." },
-            { name: "Explorateur Obstiné", desc: "Les figurines de cette unité ne sont pas ralenties par les débris et les obstacles et ignorent toutes les règles qui pénalisent le mouvement ou les jets d'Avance pour le terrain difficile." },
-            { name: "Lourdement Blindé", desc: "Soustraire 1 à la caractéristique de Dégâts des attaques de mêlée." },
-            { name: "Faucheur", desc: "À chaque attaque de mêlée effectuée par une figurine de cette unité MONTRÉE, relancez tout jet de touche de 1." }
+        Monstre: [
+            { name: "Protections Durcies", desc: "Augmentez la caractéristique de Sauvegarde d'Armure de la figurine." },
+            { name: "Rôdeur Conquérant", desc: "Ajoutez 1 à la caractéristique de Mouvement de la figurine." },
+            { name: "Grand Acquisiteur", desc: "Si la figurine est à portée d'un objectif à la fin de votre tour, gagnez 1 PC." }
         ],
         Infantrie: [
             { name: "Résistance de Briscard", desc: "Les figurines de cette unité ont l'aptitude Insensible à la Douleur 6+." },
             { name: "Spectres des Ruines", desc: "Les figurines de cette unité ont l'aptitude Infiltrateurs." },
-            { name: "Unis dans l'Adversité", desc: "Vous pouvez cibler cette unité avec le Stratagème Intervention Héroïque pour 0 PC, même si vous avez déjà ciblé une unité différente avec ce Stratagème." },
-            { name: "Pillards", desc: "À chaque attaque d'une figurine de cette unité avec une arme de mêlée qui cible une unité qui est à portée d'un pion d'objectif, relancez tout jet de touche de 1." },
-            { name: "Purificateurs", desc: "Si elle a déjà le mot-clé GRENADES, vous pouvez cibler cette unité avec le Stratagème Grenade pour 0PC." },
+            { name: "Unis dans l'Adversité", desc: "Vous pouvez cibler cette unité avec le Stratagème Intervention Héroïque pour 0PC, même si vous avez déjà ciblé une autre unité avec ce Stratagème." },
+            { name: "Pillards", desc: "À chaque attaque d'une figurine de cette unité qui cible une unité à portée d'un pion d'objectif, relancez les jets de touche de 1." },
+            { name: "Purificateurs", desc: "Cette unité gagne le mot-clé GRENADES. Si elle a déjà ce mot-clé, une fois par bataille, vous pouvez cibler cette unité avec le Stratagème Grenade pour 0PC." },
             { name: "Assaut de Terreur", desc: "Au début de la phase de Combat, choisissez 1 unité ennemie à Portée d'Engagement de cette unité. L'unité ennemie doit faire un test d'Ébranlement." }
         ],
-        Cavalerie: [ 
+        Cavalerie: [
             { name: "Cavaliers des Ruines", desc: "Ajoutez 2\" à la caractéristique de Mouvement des figurines de cette unité." },
-            { name: "Offensive Tonitruante", desc: "Ajoutez 1 aux jets d'Avance et de Charge faits pour cette unité." },
-            { name: "Assassins sur Selle", desc: "À chaque attaque de mêlée d'une figurine de cette unité qui cible la cible éligible la plus proche, améliorez de 1 la caractéristique de Pénétration d'Armure de l'attaque." },
+            { name: "Offensive Tonitruante", desc: "Ajoutez 1 aux jets d'Avance et de Charge effectués pour cette unité." },
+            { name: "Assassins sur Selle", desc: "À chaque attaque de tir d'une figurine de cette unité qui cible la cible éligible la plus proche, améliorez de 1 la caractéristique de Pénétration d'Armure de cette attaque." },
             { name: "Briseurs de Lignes", desc: "Chaque fois que cette unité finit un mouvement de Charge, jusqu'à la fin du tour, les armes de mêlée dont sont équipées les figurines de cette unité ont l'aptitude [TOUCHES SOUTENUES 1]." },
-            { name: "Charge Broyeuse", desc: "Chaque fois que cette unité finit un mouvement de Charge, choisissez 1 unité ennemie à Portée d'Engagement d'elle, puis jetez 1 D6 pour chaque figurine de cette unité qui est à Portée d'Engagement de l'unité ennemie; pour chaque 4+, l'unité ennemie subit 1 blessure mortelle." },
+            { name: "Charge Broyeuse", desc: "Chaque fois que cette unité finit un mouvement de Charge, choisissez 1 unité ennemie à Portée d'Engagement d'elle, puis jetez 1 D6 pour chaque figurine de cette unité à Portée d'Engagement de l'unité ennemie : pour chaque 4+, l'unité ennemie subit 1 blessure mortelle." },
             { name: "Vitesse Étourdissante", desc: "Les figurines de cette unité ont l'aptitude Discrétion." }
         ]
     },
@@ -953,40 +943,40 @@ const crusadeRules = {
     ],
     relics: {
         artificer: [
-            { name: "Boussole d'Artificier", desc: "Le porteur gagne l'aptitude Infiltrateurs.", cost: 1 },
-            { name: "Voile des Doyens", desc: "Le porteur gagne l'aptitude Infiltrateurs.", cost: 1 },
-            { name: "Trésor des Technomandrites", desc: "Choisissez 1 arme dont est équipé le porteur. Chaque fois que cette arme est remplacée par une Optimisation ou une Relique de Croisade, notez-le. L'arme d'origine est considérée comme un évocateur.", cost: 1 },
+            { name: "Boussole à Sombreroches", desc: "Après que vous avez remporté une bataille, si le porteur est sur le champ de bataille, vous gagnez 2 Fragments de Sombreroches supplémentaires.", cost: 1 },
+            { name: "Voile des Doyens", desc: "Le porteur a une sauvegarde invulnérable de 4+.", cost: 1 },
+            { name: "Trésor des Technomandrites", desc: "Choisissez 1 arme dont est équipé le porteur (sauf une arme qui a été remplacée par une Optimisation ou améliorée via le tableau de Modifications d'Arme), puis choisissez 1 des aptitudes suivantes à conférer à l'arme : [TOUCHES FATALES], [PRÉCISION] ou [TOUCHES SOUTENUES 1]. Cette arme est à présent une Relique de Croisade ; notez-le sur la carte de Croisade du porteur et donnez à l'arme un nom évocateur.", cost: 1 },
             { name: "Armure de la Sentinelle sans Âme", desc: "Améliorez de 1 les caractéristiques d'Endurance et de Sauvegarde du porteur.", cost: 1 }
         ],
         antique: [
-            { name: "Sceau de Noctilithe", desc: "Figurine non-PSYKER seulement. Les figurines du porteur ont l'aptitude Insensible à la Douleur 4+ contre les Attaques Psychiques.", cost: 2 },
-            { name: "Clé-Dolmen", desc: "Le porteur peut se déployer via les tunnels Dolmen (Deep Strike).", cost: 2 },
-            { name: "Miroir de Vantachren", desc: "Les figurines du porteur ont l'aptitude Discrétion. De plus, chaque fois qu'un porteur cible une unité ennemie avec une charge, soustrayez 2 au jet de Charge.", cost: 2 },
-            { name: "Œil de Mars", desc: "Après que les joueurs ont déployé leurs armées, vous pouvez placer le porteur en Réserves Stratégiques.", cost: 2 }
+            { name: "Sceau de Noctilithe", desc: "Figurine non-PSYKER seulement. Les figurines de l'unité du porteur ont l'aptitude Insensible à la Douleur 4+ contre les Attaques Psychiques.", cost: 2 },
+            { name: "Clé-Dolmen", desc: "Les figurines de l'unité du porteur ont l'aptitude Frappe en Profondeur. De plus, vous pouvez cibler l'unité du porteur avec le Stratagème Arrivée Précipitée pour 0PC, et quand vous le résolvez, vous pouvez placer l'unité du porteur à 6\" d'une unité ennemie et à plus de 6\" d'un objectif. Jusqu'à la fin du tour, l'unité ne peut pas effectuer de charge.", cost: 2 },
+            { name: "Miroir de Vanatarchen", desc: "Les figurines de l'unité du porteur ont l'aptitude Discrétion. De plus, quand vous choisissez l'unité du porteur comme cible d'une charge, soustrayez 2 au jet de Charge.", cost: 2 },
+            { name: "Œil de Mars", desc: "Après que les joueurs ont déployé leur armée, choisissez 1 unité de votre armée de Croisade et redéployez-la. Ce faisant, vous pouvez placer l'unité en Réserves Stratégiques même si cela dépasse les limitations normales.", cost: 2 }
         ],
         legendaire: [
-            { name: "Lame du Dynaste", desc: "Améliorez de 1 les caractéristiques de Force, de Dégâts et de Pénétration d'Armure des armes de mêlée du porteur. Une fois par bataille, vous pouvez activer cette Relique pour ajouter 2 aux jets de Charge.", cost: 3 },
-            { name: "Bouclier Noctique", desc: "Ajoutez 1 aux caractéristiques d'Endurance et de Points de Vie du porteur. Une fois par bataille, quand une attaque cible l'unité du porteur, il peut soustraire 1 à la caractéristique de Dégâts de l'attaque.", cost: 3 },
-            { name: "Bâton de l'Omnimessie", desc: "Au début de votre phase de Commandement, le porteur récupère jusqu'à D3 PV perdus. Une fois par bataille, il peut choisir 1 unité ennemie à Portée d'Engagement du porteur. L'unité ennemie subit autant de blessures mortelles que le nombre de PV que le porteur a récupéré.", cost: 3 }
+            { name: "Lame du Dynaste", desc: "Améliorez de 1 les caractéristiques de Force, de Dégâts et de Pénétration d'Armure des armes de mêlée du porteur. Une fois par bataille, à votre phase de Charge, si votre armée de Croisade a la Posture Stratégique Agressive, le porteur peut activer cette Relique de Croisade. En ce cas, jusqu'à la fin de la phase, ajoutez 2 aux jets de Charge de l'unité du porteur.", cost: 3 },
+            { name: "Bouclier Noctique", desc: "Ajoutez 1 aux caractéristiques d'Endurance et de Points de Vie du porteur. Une fois par bataille, quand une attaque cible l'unité du porteur, si votre armée de Croisade a la Posture Stratégique Défensive, le porteur peut activer cette Relique de Croisade. En ce cas, jusqu'à la fin de la phase, chaque fois qu'on alloue une attaque à une figurine de l'unité du porteur, soustrayez 1 à la caractéristique de Dégâts de l'attaque.", cost: 3 },
+            { name: "Bâton de l'Omnimessie", desc: "Au début de votre phase de Commandement, le porteur récupère jusqu'à D3 PV perdus. Une fois par bataille, au début de votre phase de Commandement, si votre armée de Croisade a la Posture Stratégique Équilibrée, le porteur peut activer cette Relique de Croisade. En ce cas, choisissez 1 unité ennemie à Portée d'Engagement du porteur. L'unité ennemie subit autant de blessures mortelles que le nombre de PV que le porteur a récupéré en vertu de cette Relique de Croisade pendant la bataille.", cost: 3 }
         ]
     },
     sombrerocheHonours: [
-        { name: "Carte Nodale", desc: "Tant que le porteur est à portée d'un pion d'objectif, si l'unité du porteur est Ébranlée, remplacez par 1 au lieu de 0 la caractéristique de Contrôle d'Objectif des figurines.", cost: 20 },
-        { name: "Chercheur Obsessionnel", desc: "Si le porteur est votre SEIGNEUR DE GUERRE, à la fin de la bataille, jetez 1 D6. En ajoutant 2 au jet si vous avez remporté la bataille. Sur 6+, vous gagnez 5 Fragments de Sombreroche.", cost: 10 },
-        { name: "Opportuniste Cupide", desc: "Au début de la bataille, si le porteur est votre SEIGNEUR DE GUERRE, vous pouvez choisir une Posture Stratégique : Agressive (Aptitude Éclaireurs 6), Équilibrée (Aptitude Agent Solitaire), ou Défensive (Aptitude Discrétion).", cost: 15 }
+        { name: "Carte Nodale", desc: "Tant que le porteur est à portée d'un pion objectif, si l'unité du porteur est Ébranlée, remplacez par 1 au lieu de 0 la caractéristique de Contrôle d'Objectif des figurines de l'unité.", cost: 20 },
+        { name: "Chercheur Obsessionnel", desc: "Si le porteur est votre SEIGNEUR DE GUERRE, à la fin de la bataille, jetez 1D6, en ajoutant 2 au jet si vous avez remporté la bataille. Sur 6+, vous gagnez 3 Fragments de Sombreroches.", cost: 10 },
+        { name: "Opportuniste Cupide", desc: "Au début de la bataille, si le porteur est votre SEIGNEUR DE GUERRE, jusqu'à la fin de la bataille, il gagne l'aptitude ci-dessous qui correspond à la Posture Stratégique que vous avez choisie à l'étape Choisir une Posture Stratégique : Agressive : les figurines de l'unité du porteur ont l'aptitude Éclaireurs 6\". Équilibrée : le porteur a l'aptitude Agent Solitaire. Défensive : les figurines de l'unité du porteur ont l'aptitude Discrétion.", cost: 15 }
     ],
     sombrerocheRelics: [
-        { name: "Désincitateur Empathique", desc: "Au début de la bataille, choisissez 1 pion d'objectif. Tant que le porteur est sur le champ de bataille, les unités amies à portée du pion d'objectif ont une sauvegarde invulnérable de 5+.", cost: 15 },
-        { name: "Armement de Noctilithe", desc: "Choisissez 1 arme de mêlée dont est équipé le porteur. Une fois par tour, à la fin de la phase de Combat, vous pouvez activer cette Relique de Croisade. Dans ce cas, jusqu'à la fin de la phase, à chaque attaque de cette arme, on ne peut pas faire de jet de sauvegarde invulnérable contre l'attaque.", cost: 20 },
-        { name: "Amulette de Sombreroche", desc: "Chaque fois qu'une attaque de mêlée non modifiée de 6 est allouée au porteur, l'unité attaquante subit 1 blessure mortelle après qu'elle a résolu ses attaques. Si l'attaque avait été faite avec une arme Psychique, cet effet s'applique sur un jet de sauvegarde non modifié de 5+ à la place.", cost: 20 }
+        { name: "Désincritateur Empathique", desc: "Au début de la bataille, choisissez 1 pion objectif. Tant que le porteur est sur le champ de bataille, les unités ennemies à portée de ce pion objectif ont une sauvegarde invulnérable de 5+.", cost: 15 },
+        { name: "Armement de Noctilithe", desc: "Choisissez 1 arme de mêlée dont est équipé le porteur (sauf une arme qui a été remplacée par une Optimisation ou améliorée via le tableau de Modifications d'Arme). Cette arme est à présent une Relique de Croisade ; notez-la sur la carte de Croisade du porteur et donnez-lui un nom évocateur. Une fois par bataille, à la phase de Combat, le porteur peut activer cette Relique de Croisade. En ce cas, jusqu'à la fin de la phase, chaque fois que le porteur réussit une attaque avec cette arme, on ne peut pas faire de jet de sauvegarde invulnérable contre l'attaque.", cost: 20 },
+        { name: "Amulette de Sombreroche", desc: "Chaque fois qu'une attaque de mêlée est allouée au porteur, sur un jet de sauvegarde non modifié de 6, l'unité attaquante subit 1 blessure mortelle après que l'unité a résolu ses attaques. Si l'attaque est effectuée avec une arme Psychique, cet effet s'applique sur un jet de sauvegarde non modifié de 5+ à la place.", cost: 20 }
     ],
     battleScars: [
         { name: "Dégâts Invalidants", desc: "Cette unité ne peut pas Avancer et on soustrait 1\" à la caractéristique de Mouvement de ses figurines." },
-        { name: "Usé par la Guerre", desc: "Chaque fois que cette unité fait un test d'Ébranlement, de Commandement, de Fuite Désespérée ou de Mise Hars de Combat, soustrayez 1 au test." },
+        { name: "Usé par la Guerre", desc: "Chaque fois que cette unité fait un test d'Ébranlement, de Commandement, de Fuite Désespérée ou de Mise Hors de Combat, soustrayez 1 au test." },
         { name: "Épuisé", desc: "Soustrayez 1 à la caractéristique de Contrôle d'Objectif des figurines de cette unité, et cette unité ne reçoit jamais de bonus de Charge." },
         { name: "Disgrâce", desc: "Vous ne pouvez pas utiliser de Stratagème pour affecter cette unité, et elle ne peut pas être Promise à la Grandeur." },
-        { name: "Honni", desc: "Les jets de touche ne peuvent pas être relancés pour cette unité. Si elle est Attachée, cela ne s'applique pas aux unités amies et elle ne peut pas être Promise à la Grandeur." },
-        { name: "Cicatrices Intérieures", desc: "À chaque Blessure Critique causée contre cette unité, l'attaque blesse automatiquement cette unité." }
+        { name: "Honni", desc: "Cette unité ne peut pas former d'unité Attachée, elle n'est pas affectée par les aptitudes d'Aura des unités amies, et elle ne peut pas être Promise à la Grandeur." },
+        { name: "Cicatrices Intérieures", desc: "À chaque Touche Critique causée contre cette unité, l'attaque blesse automatiquement cette unité." }
     ]
 };
 
@@ -1378,7 +1368,7 @@ const factionDetachments = {
         { group: "Horde de Guerre", name: "Ruzé mais Brutal", cost: 15 },
         { group: "Horde de Guerre", name: "Suivez-moi Les Gars", cost: 25 },
         { group: "Horde de Guerre", name: "Super Corps Cybork", cost: 15 },
-        { group: "Kulte d'la Vitess'", name: "La Loi d'la Vitess", cost: 25 },
+        { group: "Kulte d'la Vitess'", name: "La Loi d'la Vitess'", cost: 25 },
         { group: "Kulte d'la Vitess'", name: "Pluss Vite Que Vouzaut'", cost: 35 },
         { group: "Kulte d'la Vitess'", name: "Pneus en Cuir de Squig", cost: 15 },
         { group: "Kulte d'la Vitess'", name: "Wazklata", cost: 10 },
@@ -1387,13 +1377,13 @@ const factionDetachments = {
         { group: "La Chasse au Gros", name: "Méchant kom' un Squiggouth", cost: 20 },
         { group: "La Chasse au Gros", name: "Tro Balèz", cost: 15 },
         { group: "Marée Verte", name: "Belligérance Sanguinaire", cost: 15 },
-        { group: "Marée Verte", name: "Brutal Mais Ruze", cost: 25 },
+        { group: "Marée Verte", name: "Brutal Mais Ruzé", cost: 25 },
         { group: "Marée Verte", name: "M'as-tu-vu Féroce", cost: 10 },
-        { group: "Marée Verte", name: "Va-ten--guerre Vociférant", cost: 20 },
-        { group: "Plus de Dakka!", name: "Bouff Plutôt du Dakka!", cost: 10 },
+        { group: "Marée Verte", name: "Va-t-en-guerre Vociférant", cost: 20 },
+        { group: "Plus de Dakka!", name: "Bouff' Plutôt du Dakka!", cost: 10 },
         { group: "Plus de Dakka!", name: "Fling' Kitu Kibrill'", cost: 35 },
         { group: "Plus de Dakka!", name: "Squigs Vizeurs", cost: 15 },
-        { group: "Plus de Dakka!", name: "Tromblon Ratich", cost: 15 }
+        { group: "Plus de Dakka!", name: "Tromblon Ratich'", cost: 15 }
     ],
     "Space Marines": [
         { group: "Conclave du Librarius", name: "Célérité", cost: 30 },
@@ -1450,7 +1440,7 @@ const factionDetachments = {
     "T'au Empire": [
         { group: "Cadre Auxiliaire", name: "Chef Admiré", cost: 20 },
         { group: "Cadre Auxiliaire", name: "Converti Fanatique", cost: 10 },
-        { group: "Cadre Auxiliaire", name: "Disciple du Kauyan", cost: 15 },
+        { group: "Cadre Auxiliaire", name: "Disciple du Kauyon", cost: 15 },
         { group: "Cadre Auxiliaire", name: "Module à Verrouillage de Transpondeurs", cost: 25 },
         { group: "Cadre de Prototypes Expérimentaux", name: "Fusil Accélérateur à Plasma Froid", cost: 10 },
         { group: "Cadre de Prototypes Expérimentaux", name: "Lames à Fusion", cost: 25 },
@@ -1567,4 +1557,5 @@ const factionDetachments = {
         { group: "Vaisseaux de la Colère", name: "Portails vers la Gloire", cost: 25 },
         { group: "Vaisseaux de la Colère", name: "Vox Diabolus", cost: 20 }
     ]
+
 };

@@ -1,5 +1,3 @@
-import { getStore } from "@netlify/blobs";
-
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
@@ -7,7 +5,6 @@ function corsHeaders() {
     "Access-Control-Allow-Headers": "Content-Type",
   };
 }
-
 function respond(statusCode, json) {
   return {
     statusCode,
@@ -16,24 +13,26 @@ function respond(statusCode, json) {
   };
 }
 
-export const handler = async (event) => {
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: corsHeaders() };
-  }
-  if (event.httpMethod !== "GET") {
-    return respond(405, { error: "Method Not Allowed" });
-  }
+exports.handler = async (event) => {
+  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: corsHeaders() };
+  if (event.httpMethod !== "GET") return respond(405, { error: "Method Not Allowed" });
 
   const key = (event.queryStringParameters && event.queryStringParameters.key) || "default";
 
   try {
-    const store = getStore("campaigns");
+    const mod = await import("@netlify/blobs");
+    const getStore = mod.getStore || mod.default?.getStore;
+    if (!getStore) throw new Error("Netlify Blobs: getStore introuvable.");
+
+    const siteID = process.env.BLOBS_SITE_ID;
+    const token  = process.env.BLOBS_TOKEN;
+    console.log("loadCampaign env:", !!siteID, !!token); // true true attendu
+    if (!siteID || !token) throw new Error("BLOBS_SITE_ID ou BLOBS_TOKEN manquant(s).");
+
+    const store = getStore({ name: "campaigns", siteID, token });
     const data = await store.get(key, { type: "json" });
 
-    if (data === null) {
-      return respond(404, { error: "not found" });
-    }
-
+    if (data === null) return respond(404, { error: "not found" });
     return {
       statusCode: 200,
       headers: { ...corsHeaders(), "Content-Type": "application/json" },

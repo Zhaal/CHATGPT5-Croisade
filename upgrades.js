@@ -271,7 +271,7 @@ const populateUpgradeSelectors = () => {
         const legionSelect = document.getElementById('legion-of-shadow-select');
         legionSelect.innerHTML = '<option value="">Choisir une optimisation...</option>';
         chaosDaemonsCrusadeRules.legionOfShadowEnhancements.forEach(enhancement => {
-            legionSelect.innerHTML += `<option value="${enhancement.name}" data-cost="${enhancement.cost}" data-cp-cost="${enhancement.crusadePointCost}">${enhancement.name}</option>`;
+            legionSelect.innerHTML += `<option value="${enhancement.name}" data-cost="${enhancement.cost}" data-cp-cost="${enhancement.crusadePointCost}">${enhancement.name} (${enhancement.cost} pts)</option>`;
         });
     } else {
         legionOfShadowSection.classList.add('hidden');
@@ -320,14 +320,15 @@ document.getElementById('add-battle-trait-btn').addEventListener('click', () => 
 
     const traitDesc = findUpgradeDescription(traitName);
     if (!traitDesc) return;
-    
-    handleRpPurchase(`Trait: ${traitName}`, 1, () => {
-        const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
-        addUpgradeToUnitData(unit, 'unit-honours', traitName, traitDesc);
-        unit.crusadePoints = (unit.crusadePoints || 0) + 1;
-        document.getElementById('unit-crusade-points').value = unit.crusadePoints;
-        select.value = '';
-    });
+
+    const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
+    addUpgradeToUnitData(unit, 'unit-honours', traitName, traitDesc);
+    unit.crusadePoints = (unit.crusadePoints || 0) + 1;
+    document.getElementById('unit-crusade-points').value = unit.crusadePoints;
+
+    select.value = '';
+    saveData();
+    showNotification(`Trait "${traitName}" ajouté.`, 'success');
 });
 
 document.getElementById('add-weapon-mod-btn').addEventListener('click', () => {
@@ -338,13 +339,14 @@ document.getElementById('add-weapon-mod-btn').addEventListener('click', () => {
     const mod = crusadeRules.weaponMods.find(m => m.name === modName);
     if (!mod) return;
 
-    handleRpPurchase(`Mod. d'Arme: ${mod.name}`, 1, () => {
-        const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
-        addUpgradeToUnitData(unit, 'unit-honours', mod.name, mod.desc, "Mod. d'Arme: ");
-        unit.crusadePoints = (unit.crusadePoints || 0) + 1;
-        document.getElementById('unit-crusade-points').value = unit.crusadePoints;
-        select.value = '';
-    });
+    const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
+    addUpgradeToUnitData(unit, 'unit-honours', mod.name, mod.desc, "Mod. d'Arme: ");
+    unit.crusadePoints = (unit.crusadePoints || 0) + 1;
+    document.getElementById('unit-crusade-points').value = unit.crusadePoints;
+
+    select.value = '';
+    saveData();
+    showNotification(`Modification d'arme "${mod.name}" ajoutée.`, 'success');
 });
 
 document.getElementById('add-relic-btn').addEventListener('click', () => {
@@ -352,36 +354,37 @@ document.getElementById('add-relic-btn').addEventListener('click', () => {
     const selectedOption = select.options[select.selectedIndex];
     if (!selectedOption.dataset.type) return;
 
-    const [source, category, type] = selectedOption.dataset.type.split('.');
+    const parts = selectedOption.dataset.type.split('.');
     let ruleSet;
-    if (source === 'sororitas') {
-        ruleSet = sororitasCrusadeRules[category][type];
-    } else if (source === 'deathguard') {
-        ruleSet = deathGuardCrusadeRules[category][type];
+    if (parts[0] === 'sororitas') {
+        ruleSet = sororitasCrusadeRules[parts[1]][parts[2]];
+    } else if (parts[0] === 'deathguard') {
+        ruleSet = deathGuardCrusadeRules[parts[1]][parts[2]];
     }
     // ==========================================================
     // DEBUT DE LA MODIFICATION TYRANIDE
     // ==========================================================
-    else if (source === 'tyranid') {
-        ruleSet = tyranidCrusadeRules[category][type];
+    else if (parts[0] === 'tyranid') {
+        ruleSet = tyranidCrusadeRules[parts[1]][parts[2]];
     }
     // ==========================================================
     // FIN DE LA MODIFICATION TYRANIDE
     // ==========================================================
     else {
-        ruleSet = crusadeRules[category][type];
+        ruleSet = crusadeRules[parts[0]][parts[1]];
     }
 
     const relic = ruleSet.find(r => r.name === selectedOption.value);
     if (!relic) return;
-    
-    handleRpPurchase(`Relique: ${relic.name}`, relic.cost, () => {
-        const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
-        addUpgradeToUnitData(unit, 'unit-relic', relic.name, relic.desc);
-        unit.crusadePoints = (unit.crusadePoints || 0) + relic.cost;
-        document.getElementById('unit-crusade-points').value = unit.crusadePoints;
-        select.value = '';
-    });
+
+    const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
+    addUpgradeToUnitData(unit, 'unit-relic', relic.name, relic.desc);
+    unit.crusadePoints = (unit.crusadePoints || 0) + relic.cost;
+    document.getElementById('unit-crusade-points').value = unit.crusadePoints;
+
+    select.value = '';
+    saveData();
+    showNotification(`Relique "${relic.name}" ajoutée.`, 'success');
 });
 
 document.getElementById('add-battle-scar-btn').addEventListener('click', () => {
@@ -459,22 +462,37 @@ document.getElementById('add-sombreroche-relic-btn').addEventListener('click', a
 // CORRIGÉ : Cette fonction est maintenant gérée par le module de la faction (DeathGuard_module.js)
 // document.getElementById('add-nurgle-boon-btn').addEventListener('click', () => { ... });
 
-document.getElementById('add-legion-of-shadow-btn').addEventListener('click', () => {
+document.getElementById('add-legion-of-shadow-btn').addEventListener('click', async () => {
     const select = document.getElementById('legion-of-shadow-select');
     const selectedOption = select.options[select.selectedIndex];
+    if (!selectedOption || !selectedOption.value) return;
+
     const enhancementName = selectedOption.value;
-    if (!enhancementName) return;
+    const enhancementCost = parseInt(selectedOption.dataset.cost);
+    const cpCost = parseInt(selectedOption.dataset.cpCost) || 0;
 
     const enhancement = chaosDaemonsCrusadeRules.legionOfShadowEnhancements.find(e => e.name === enhancementName);
     if (!enhancement) return;
 
-    handleRpPurchase(enhancement.name, enhancement.cost, () => {
-        const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
+    const confirmText = `Voulez-vous ajouter l'Optimisation de l'Ombre <i>${enhancementName}</i> pour <b>${enhancementCost} pts</b> ?`;
+    if (await showConfirm("Ajouter une Optimisation", confirmText)) {
+        const player = campaignData.players[activePlayerIndex];
+        const unit = player.units[editingUnitIndex];
+
+        if (!unit.detachmentUpgrades) {
+            unit.detachmentUpgrades = [];
+        }
+        unit.detachmentUpgrades.push({ name: enhancementName, cost: enhancementCost });
+
         addUpgradeToUnitData(unit, 'unit-honours', enhancement.name, enhancement.desc, "Optimisation de l'Ombre: ");
 
-        unit.crusadePoints = (unit.crusadePoints || 0) + enhancement.crusadePointCost;
+        unit.crusadePoints = (unit.crusadePoints || 0) + cpCost;
         document.getElementById('unit-crusade-points').value = unit.crusadePoints;
 
+        saveData();
+        renderPlayerDetail();
+        showNotification(`Optimisation de l'Ombre "${enhancementName}" ajoutée !`, 'success');
+
         select.value = '';
-    });
+    }
 });

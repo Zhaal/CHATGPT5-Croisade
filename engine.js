@@ -13,7 +13,7 @@ let campaignData = {
     isGalaxyGenerated: false,
     gatewayLinks: [],
     pendingNotifications: [],
-    sessionLog: []
+    sessionLog: [] // MODIFIÉ : Remplace l'ancien actionLog global
 };
 
 let mapModal;
@@ -21,15 +21,17 @@ let worldModal;
 let playerListView;
 let playerDetailView;
 let plagueManagementModal;
-let pvpCombatModal;
+let pvpCombatModal; // NOUVEAU
 
 let activePlayerIndex = -1;
 let editingPlayerIndex = -1;
 let editingUnitIndex = -1;
 let currentlyViewedSystemId = null;
 let mapViewingPlayerId = null;
-let selectedSystemOnMapId = null;
+let selectedSystemOnMapId = null; // NEW: Tracks selected system for map actions
 let currentMapScale = 1;
+
+let isAdminMode = false;
 
 let isPanning = false;
 let wasDragged = false;
@@ -37,7 +39,7 @@ let startX, scrollLeftStart;
 let startY, scrollTopStart;
 
 const STEP_DISTANCE = 250;
-const GALAXY_SIZE = 4;
+const GALAXY_SIZE = 9;
 
 //======================================================================
 //  SYSTÈME DE NOTIFICATION, CONFIRMATION, LOG & MODALES
@@ -71,6 +73,23 @@ function showNotification(message, type = 'info', duration = 5000) {
     });
 }
 
+function updateAdminModeUI() {
+    document.querySelectorAll('.tally-btn').forEach(btn => {
+        btn.disabled = !isAdminMode;
+    });
+    const toggleBtn = document.getElementById('toggle-admin-btn');
+    if (toggleBtn) {
+        toggleBtn.textContent = isAdminMode ? 'Mode Utilisateur' : 'Mode Admin';
+    }
+}
+
+/**
+ * MODIFIÉ : Enregistre une action dans l'historique personnel d'un joueur.
+ * @param {string} playerId - L'ID du joueur pour qui enregistrer l'action.
+ * @param {string} message - Le message à afficher dans le journal.
+ * @param {string} type - Le type d'événement (ex: 'explore', 'conquest', 'alert').
+ * @param {string} [icon='📜'] - L'icône emoji à afficher.
+ */
 function logAction(playerId, message, type, icon = '📜') {
     const player = campaignData.players.find(p => p.id === playerId);
     if (!player) {
@@ -96,7 +115,8 @@ function logAction(playerId, message, type, icon = '📜') {
         player.actionLog = player.actionLog.slice(0, LOG_LIMIT);
     }
 
-    const today = new Date().toISOString().slice(0, 10);
+    // NOUVEAU : Enregistre une entrée de session générique
+    const today = new Date().toISOString().slice(0, 10); // Format YYYY-MM-DD
     const sessionExists = campaignData.sessionLog.some(
         s => s.playerId === playerId && s.timestamp.startsWith(today)
     );
@@ -112,6 +132,7 @@ function logAction(playerId, message, type, icon = '📜') {
         }
     }
 
+
     saveData();
 
     if (typeof renderActionLog === 'function') {
@@ -119,11 +140,15 @@ function logAction(playerId, message, type, icon = '📜') {
     }
 }
 
+/**
+ * NOUVELLE FONCTION : Enregistre une action pour TOUS les joueurs (ex: réinitialisation).
+ */
 function logGlobalAction(message, type, icon = '💥') {
     campaignData.players.forEach(player => {
         logAction(player.id, message, type, icon);
     });
 }
+
 
 function showConfirm(title, text) {
     return new Promise(resolve => {
@@ -163,11 +188,12 @@ function showPasswordConfirm(title, text) {
 
         confirmModalTitle.textContent = title;
         confirmModalText.innerHTML = text;
-        confirmModalInput.value = '';
+        confirmModalInput.value = ''; // Clear previous input
         openModal(confirmModal);
 
         const closeAndResolve = (value) => {
             closeModal(confirmModal);
+            // Clean up listeners
             confirmModalOkBtn.removeEventListener('click', okListener);
             confirmModalCancelBtn.removeEventListener('click', cancelListener);
             confirmModal.querySelector('.close-btn').removeEventListener('click', cancelListener);
@@ -180,9 +206,10 @@ function showPasswordConfirm(title, text) {
                 closeAndResolve(true);
             } else {
                 showNotification('Mot de passe incorrect.', 'error');
+                // Don't close the modal, let the user try again.
             }
         };
-
+        
         const cancelListener = () => closeAndResolve(false);
 
         const keydownListener = (e) => {
@@ -197,9 +224,11 @@ function showPasswordConfirm(title, text) {
         confirmModal.querySelector('.close-btn').addEventListener('click', cancelListener);
         confirmModalInput.addEventListener('keydown', keydownListener);
 
+        // Focus the input field when the modal opens
         setTimeout(() => confirmModalInput.focus(), 100);
     });
 }
+
 
 function showExplorationChoice(title, text) {
     return new Promise(resolve => {
@@ -216,6 +245,10 @@ function showExplorationChoice(title, text) {
 
         const closeAndResolve = (value) => {
             closeModal(choiceModal);
+            cancelBtn.removeEventListener('click', cancelListener);
+            blindJumpBtn.removeEventListener('click', blindJumpListener);
+            probeBtn.removeEventListener('click', probeListener);
+            choiceModal.querySelector('.close-btn').removeEventListener('click', cancelListener);
             resolve(value);
         };
 
@@ -245,6 +278,7 @@ function showRouteDiscoveryChoice(title, text) {
 
         const closeAndResolve = (value) => {
             closeModal(choiceModal);
+            // No need to remove listeners if using { once: true }
             resolve(value);
         };
 
@@ -258,6 +292,7 @@ function showRouteDiscoveryChoice(title, text) {
         choiceModal.querySelector('.close-btn').addEventListener('click', cancelListener, { once: true });
     });
 }
+
 
 function showProbeActionChoice(title, text, timerText) {
     return new Promise(resolve => {
@@ -276,6 +311,10 @@ function showProbeActionChoice(title, text, timerText) {
 
         const closeAndResolve = (value) => {
             closeModal(choiceModal);
+            cancelBtn.removeEventListener('click', cancelListener);
+            establishBtn.removeEventListener('click', establishListener);
+            rescanBtn.removeEventListener('click', rescanListener);
+            choiceModal.querySelector('.close-btn').removeEventListener('click', cancelListener);
             resolve(value);
         };
 
@@ -302,12 +341,13 @@ function showUnitChoiceModal(title, text, unitList) {
 
         modalTitle.textContent = title;
         modalText.innerHTML = text;
-
+        
+        // Vider et remplir la liste déroulante
         select.innerHTML = '';
         if (unitList && unitList.length > 0) {
             unitList.forEach(unit => {
                 const option = document.createElement('option');
-                option.value = unit.id;
+                option.value = unit.id; // Utiliser l'ID unique de l'unité
                 option.textContent = `${unit.name} (XP: ${unit.xp || 0})`;
                 select.appendChild(option);
             });
@@ -316,11 +356,12 @@ function showUnitChoiceModal(title, text, unitList) {
             select.innerHTML = '<option disabled>Aucune cible éligible trouvée.</option>';
             okBtn.disabled = true;
         }
-
+        
         openModal(modal);
 
         const closeAndResolve = (value) => {
             closeModal(modal);
+            // Nettoyer les écouteurs d'événements pour éviter les doublons
             okBtn.removeEventListener('click', okListener);
             cancelBtn.removeEventListener('click', cancelListener);
             closeBtn.removeEventListener('click', cancelListener);
@@ -356,6 +397,7 @@ function displayPendingNotifications() {
     }
 }
 
+
 //========================================
 // Contenu de systems
 //========================================
@@ -372,7 +414,7 @@ const SYSTEM_NAMES = [
     "Aegir", "Brimstone Hold", "Calytrix", "Dreadspire", "Emberfall", "Fury's Gate", "Geminus",
     "Horizon’s Edge", "Iridion", "Jovaris", "Kael'Thas", "Lunaris", "Morgana Drift", "Naraka",
     "Oberon", "Peregrine Station", "Quintessence", "Ravana", "Sanctis", "Talos Reach", "Ursae Majoris",
-
+    
     "Vanir Hold", "Weyland Spire", "Xar’Kun", "Yavin Theta", "Zirak’Zul", "Ashen Cradle", "Borealis",
     "Cradle of Light", "Dagon’s Fall", "Eos Ascendant", "Frostheim", "Gaius Ultima", "Hekate Spiral",
     "Ilyria", "Jörmungandr", "Kelvin Drift", "Lorentis", "Meridian IX", "Nihilus Core", "Orcus Verge",
@@ -385,18 +427,19 @@ const SYSTEM_NAMES = [
     "Ygreth", "Zariel Reach", "Amasis", "Briareos", "Cenaris", "Dianthus", "Edelweiss Reach",
     "Farsight Theta", "Gethsemane", "Helleborus", "Ignivar", "Jasna’s Reach", "Karnath", "Lemuria",
     "Mistral", "Nadir Sector", "Onyx Drift", "Penumbra", "Qadim", "Ravenholdt", "Severus",
-
+    
     "Talemspire", "Unaros", "Virellium", "Wanderlight", "Xorth Prime", "Yvenor", "Zephrael",
     "Axiom", "Blighthold", "Clytemnestra", "Dreadvault", "Eris Station", "Falx Magnus", "Golgotha",
     "Hyperion Expanse", "Isenhold", "Junctus", "Kharon’s Wake", "Lanx Minor", "Marnath", "Noxious Edge",
     "Ostra Nex", "Phobos Delta", "Quietude", "Ravager’s Maw", "Straylight", "Thorne’s Cradle",
     "Umbriel Verge", "Vesper Reach", "Wastrel’s Star", "Xenithum", "Ylgrast", "Zakarum",
-
+    
     "Ashenforge", "Blackreach", "Calderis", "Dun’harra", "Eternis", "Frostgate", "Gildur’s Rest",
     "Hallowed Forge", "Infractus", "Juno Decline", "Koronus Span", "Lazareth", "Mirrorglade",
     "Neth’Kar", "Oblivium", "Pharexis", "Quirinus", "Redwake", "Sablethorn", "Tranquil Verge",
     "Ul’Zanith", "Vandrel Core", "Wyrmspire", "Xanadu", "Yaraxis", "Zeraphine"
 ];
+
 
 //======================================================================
 //  ANALYSE DE CONTRÔLE & STATUT (LOGIQUE CENTRALE)
@@ -431,10 +474,10 @@ const getReachableSystemsForPlayer = (playerId) => {
     if (!player) {
         return new Set();
     }
-
+    
     const visibleIds = new Set(player.discoveredSystemIds || [player.systemId]);
     (player.probedSystemIds || []).forEach(id => visibleIds.add(id));
-
+    
     return visibleIds;
 };
 
@@ -465,6 +508,7 @@ const calculateDetachmentUpgradeCost = (player) => {
     }, 0);
 };
 
+
 const findUndiscoveredNpcSystem = () => {
     const allDiscoveredIdsByPlayers = new Set();
     campaignData.players.forEach(player => {
@@ -491,7 +535,7 @@ const placePlayerSystemOnMap = async (playerId) => {
 
     const allPlanetsControlled = playerSystem.planets.every(p => p.owner === playerId);
     if (!allPlanetsControlled) return;
-
+    
     const joinMap = await showConfirm(`Félicitations, ${player.name} !`, "Vous avez unifié votre système natal. Voulez-vous maintenant rejoindre la carte galactique principale ?");
     if (!joinMap) return;
 
@@ -520,11 +564,11 @@ const placePlayerSystemOnMap = async (playerId) => {
             }
         }
     }
-
+    
     playerSystem.position = oldPosition;
     playerSystem.connections = oldConnections;
     playerSystem.name = `${player.name}'s Bastion`;
-
+    
     Object.values(oldConnections).forEach(id => {
         if(id && !player.discoveredSystemIds.includes(id)) {
             player.discoveredSystemIds.push(id);
@@ -544,106 +588,47 @@ const placePlayerSystemOnMap = async (playerId) => {
     if (!worldModal.classList.contains('hidden') && currentlyViewedSystemId === playerSystem.id) renderPlanetarySystem(playerSystem.id);
 };
 
+
 //======================================================================
 //  GESTION DES DONNÉES (LOCALSTORAGE & JSON)
 //======================================================================
 
-const getSaves = () => {
-    const saves = localStorage.getItem('nexusCrusadeSaves');
-    try {
-        return saves ? JSON.parse(saves) : {};
-    } catch (e) {
-        console.error("Error parsing crusade saves", e);
-        return {};
-    }
-};
-
-const getActiveSaveName = () => {
-    return localStorage.getItem('nexusCrusadeActiveSaveName');
-};
-
-const setActiveSaveName = (name) => {
-    if(name) {
-        localStorage.setItem('nexusCrusadeActiveSaveName', name);
-    } else {
-        localStorage.removeItem('nexusCrusadeActiveSaveName');
-    }
-};
-
-const deleteCampaign = (saveName) => {
-    const saves = getSaves();
-    delete saves[saveName];
-    localStorage.setItem('nexusCrusadeSaves', JSON.stringify(saves));
-    if (getActiveSaveName() === saveName) {
-        setActiveSaveName(null);
-    }
-};
-
-const saveCampaignAs = async (saveName) => {
-    if (!saveName || typeof saveName !== 'string' || saveName.trim().length === 0) {
-        showNotification("Nom de sauvegarde invalide.", "error");
-        return false;
-    }
-    const trimmedName = saveName.trim();
-    const saves = getSaves();
-    saves[trimmedName] = campaignData;
-    localStorage.setItem('nexusCrusadeSaves', JSON.stringify(saves));
-    setActiveSaveName(trimmedName);
-    showNotification(`Campagne sauvegardée sous le nom "<b>${trimmedName}</b>".`, 'success');
-    return true;
-};
-
-const loadCampaign = (saveName) => {
-    const saves = getSaves();
-    if (saves[saveName]) {
-        setActiveSaveName(saveName);
-        window.location.reload();
-    } else {
-        showNotification(`Sauvegarde "<b>${saveName}</b>" non trouvée.`, 'error');
-    }
-};
-
 const saveData = () => {
-    const activeSaveName = getActiveSaveName();
-    if (!activeSaveName) {
-        return;
-    }
     try {
-        const saves = getSaves();
-        saves[activeSaveName] = campaignData;
-        localStorage.setItem('nexusCrusadeSaves', JSON.stringify(saves));
+        localStorage.setItem('nexusCrusadeData', JSON.stringify(campaignData));
     } catch (error) {
         console.error("Erreur lors de la sauvegarde des données : ", error);
         showNotification("Erreur de sauvegarde ! L'espace de stockage local est peut-être plein.", 'error');
     }
 };
 
+// =====================================================================
+// CORRECTION : SÉPARATION DE LA LOGIQUE DE CHARGEMENT ET DE MIGRATION
+// =====================================================================
+
+/**
+ * Charge les données de la campagne uniquement depuis le localStorage.
+ */
 const loadDataFromStorage = () => {
-    const saves = getSaves();
-    let activeSaveName = getActiveSaveName();
-    let dataToLoad = null;
-
-    if (activeSaveName && saves[activeSaveName]) {
-        dataToLoad = saves[activeSaveName];
-    } else if (saves['warp']) {
-        dataToLoad = saves['warp'];
-        setActiveSaveName('warp');
-    }
-
-    if (dataToLoad) {
+    const data = localStorage.getItem('nexusCrusadeData');
+    if (data) {
         try {
-            campaignData = dataToLoad;
+            campaignData = JSON.parse(data);
         } catch (error) {
-            console.error("Erreur lors du chargement des données : ", error);
-            showNotification("Les données de campagne sont corrompues.", 'error');
-            campaignData = { players: [], systems: [], isGalaxyGenerated: false, gatewayLinks: [], pendingNotifications: [], sessionLog: [] };
+            console.error("Erreur lors du chargement des données depuis le localStorage : ", error);
+            showNotification("Les données de campagne locales sont corrompues et n'ont pas pu être chargées.", 'error');
         }
     }
 };
 
+/**
+ * Vérifie et met à jour la structure de l'objet `campaignData` global
+ * pour assurer la compatibilité avec les versions plus récentes.
+ */
 const migrateData = () => {
     let dataWasModified = false;
 
+    // Initialisations de base si les clés manquent
     if (!campaignData.players) campaignData.players = [];
     if (!campaignData.systems) campaignData.systems = [];
     if (!campaignData.gatewayLinks) {
@@ -658,7 +643,7 @@ const migrateData = () => {
         campaignData.pendingNotifications = [];
         dataWasModified = true;
     }
-    if (campaignData.actionLog) {
+    if (campaignData.actionLog) { // Migration de l'ancien historique global
         delete campaignData.actionLog;
         dataWasModified = true;
     }
@@ -667,6 +652,7 @@ const migrateData = () => {
         dataWasModified = true;
     }
 
+    // Ancienne fonction pour la compatibilité de `discoveredSystemIds`
     const oldGetReachableSystems = (startSystemId) => {
         const reachable = new Set();
         if (!startSystemId) return reachable;
@@ -692,6 +678,7 @@ const migrateData = () => {
         return reachable;
     };
 
+    // Migration par joueur
     campaignData.players.forEach(player => {
         if (player.actionLog === undefined) {
             player.actionLog = [];
@@ -720,29 +707,41 @@ const migrateData = () => {
             player.discoveredSystemIds = Array.from(visibleSystems);
             dataWasModified = true;
         }
+        // Migrations spécifiques aux factions
         if (player.faction === 'Death Guard' && typeof player.deathGuardData === 'undefined') {
             player.deathGuardData = {
                 contagionPoints: player.contagionPoints || 0,
                 pathogenPower: 1,
-                corruptedPlanetIds: [],
+                corruptedPlanetIds: [], 
                 plagueStats: { reproduction: 1, survival: 1, adaptability: 1 }
             };
             delete player.contagionPoints;
             dataWasModified = true;
         }
         if (player.faction === 'Adepta Sororitas' && player.sainthood === undefined) {
-            initializeSororitasData(player);
+            initializeSororitasData(player); // Utilise la fonction d'initialisation
             dataWasModified = true;
         }
+        // ====================== DÉBUT DE LA CORRECTION TYRANIDE ======================
         if (player.faction === 'Tyranids' && player.tyranidData === undefined) {
-            const oldBiomass = player.biomassPoints || 0;
-            initializeTyranidData(player);
+            // Sauvegarde de l'ancienne valeur si elle existe
+            const oldBiomass = player.biomassPoints || 0; 
+            
+            // Initialisation de la nouvelle structure de données complète
+            initializeTyranidData(player); 
+            
+            // Restauration de l'ancienne valeur dans la nouvelle structure
             player.tyranidData.biomassPoints = oldBiomass;
-            delete player.biomassPoints;
+            
+            // Suppression de l'ancienne clé pour garder les données propres
+            delete player.biomassPoints; 
+            
             dataWasModified = true;
         }
+        // ====================== FIN DE LA CORRECTION TYRANIDE ======================
     });
 
+    // Migration par système
     campaignData.systems.forEach(system => {
         if (!system.probedConnections) {
             system.probedConnections = { up: null, down: null, left: null, right: null };
@@ -755,7 +754,7 @@ const migrateData = () => {
     });
 
     if (dataWasModified) {
-        saveData();
+        saveData(); // Sauvegarde les données migrées si des changements ont eu lieu
     }
 
     const lastVersion = localStorage.getItem('nexusCrusadeVersion');
@@ -772,13 +771,12 @@ const migrateData = () => {
 };
 
 const handleExport = () => {
-    const activeSaveName = getActiveSaveName() || 'campaign';
     const dataStr = JSON.stringify(campaignData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `nexus-crusade-${activeSaveName.replace(/\s+/g, '_')}-${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `nexus-crusade-backup-${new Date().toISOString().slice(0,10)}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -786,6 +784,10 @@ const handleExport = () => {
     showNotification("Exportation de la campagne initiée.", 'success');
 };
 
+/**
+ * CORRIGÉ : Gère l'importation d'un fichier JSON.
+ * N'appelle plus `loadData` qui écrasait les données importées.
+ */
 const handleImport = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -795,17 +797,14 @@ const handleImport = (event) => {
         try {
             const importedData = JSON.parse(e.target.result);
             if (importedData && Array.isArray(importedData.players)) {
-
-                const saveName = prompt("Veuillez entrer un nom pour cette nouvelle sauvegarde de campagne :", file.name.replace('.json', ''));
-
-                if(saveName) {
+                if (await showConfirm("Confirmation d'importation", "Importer ce fichier écrasera les données actuelles de la campagne. Êtes-vous sûr de vouloir continuer ?")) {
                     campaignData = importedData;
-                    await saveCampaignAs(saveName);
-
-                    showNotification("Importation réussie ! Rechargement de la page...", 'success');
-                    setTimeout(() => window.location.reload(), 1500);
+                    migrateData(); // CORRECTION: Appelle la migration sur les données importées
+                    saveData();
+                    renderPlayerList();
+                    switchView('list');
+                    showNotification("Importation réussie !", 'success');
                 }
-
             } else {
                 showNotification("Le fichier sélectionné n'est pas un fichier de campagne valide.", 'error');
             }
@@ -814,5 +813,54 @@ const handleImport = (event) => {
         }
     };
     reader.readAsText(file);
-    event.target.value = null;
+    event.target.value = null; // Permet de ré-importer le même fichier
+
+};
+
+const saveDataOnline = async () => {
+    const key = prompt("Identifiant de sauvegarde en ligne :");
+    if (!key) return;
+    try {
+        const response = await fetch(`/.netlify/functions/saveCampaign?key=${encodeURIComponent(key)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(campaignData)
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (response.ok) {
+            const detail = result.details || result.message || '';
+            showNotification(`Sauvegarde en ligne réussie ! ${detail}`, 'success');
+        } else {
+            const detail = result.details || result.error || 'Erreur réseau';
+            showNotification(`Échec de la sauvegarde en ligne : ${detail}`, 'error');
+        }
+    } catch (err) {
+        console.error('Erreur sauvegarde en ligne :', err);
+        showNotification(`Échec de la sauvegarde en ligne : ${err.message}`, 'error');
+    }
+};
+
+const loadDataOnline = async () => {
+    const key = prompt("Identifiant de la sauvegarde à charger :");
+    if (!key) return;
+    try {
+        const response = await fetch(`/.netlify/functions/loadCampaign?key=${encodeURIComponent(key)}`);
+        const result = await response.json();
+
+        if (!response.ok) {
+            const detail = result.details || result.error || 'Erreur réseau';
+            throw new Error(detail);
+        }
+
+        campaignData = result;
+        migrateData();
+        saveData();
+        renderPlayerList();
+        switchView('list');
+        showNotification("Chargement en ligne réussi !", 'success');
+    } catch (err) {
+        console.error('Erreur chargement en ligne :', err);
+        showNotification(`Échec du chargement en ligne : ${err.message}`, 'error');
+    }
 };

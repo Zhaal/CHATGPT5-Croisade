@@ -22,15 +22,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const planetTypeForm = document.getElementById('planet-type-form');
     const backToListBtn = document.getElementById('back-to-list-btn');
     const backToSystemBtn = document.getElementById('back-to-system-btn');
+    const toggleAdminBtn = document.getElementById('toggle-admin-btn');
     const exportBtn = document.getElementById('export-btn');
     const importBtn = document.getElementById('import-btn');
     const importFile = document.getElementById('import-file');
+    const saveOnlineBtn = document.getElementById('save-online-btn');
+    const loadOnlineBtn = document.getElementById('load-online-btn');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
     const resetCampaignBtn = document.getElementById('reset-campaign-btn');
     mapModal = document.getElementById('map-modal');
     const mapContainer = document.getElementById('galactic-map-container');
     const npcCombatModal = document.getElementById('npc-combat-modal');
     const pvpCombatModal = document.getElementById('pvp-combat-modal');
-
+    const rulesModal = document.getElementById('rules-modal');
+    
     const actionLogContainer = document.getElementById('action-log-container');
     const actionLogHeader = document.getElementById('action-log-header');
     const actionLogEntries = document.getElementById('action-log-entries');
@@ -46,126 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
     customTooltip.id = 'custom-tooltip';
     document.body.appendChild(customTooltip);
 
-    const saveLoadModal = document.getElementById('save-load-modal');
-    const saveLoadModalTitle = document.getElementById('save-load-modal-title');
-    const saveSlotsList = document.getElementById('save-slots-list');
-    const newSaveSection = document.getElementById('new-save-section');
-    const newSaveNameInput = document.getElementById('new-save-name-input');
-    const createNewSaveBtn = document.getElementById('create-new-save-btn');
-    const saveLoadCancelBtn = document.getElementById('save-load-cancel-btn');
-    const loadCampaignBtn = document.getElementById('load-campaign-btn');
-    const saveCampaignBtn = document.getElementById('save-campaign-btn');
-
-    //======================================================================
-    //  GESTION DES SAUVEGARDES
-    //======================================================================
-
-    const openSaveLoadModal = (mode = 'load') => {
-        saveSlotsList.innerHTML = '';
-        const saves = getSaves();
-        const saveNames = Object.keys(saves).sort();
-
-        if (saveNames.length === 0) {
-            saveSlotsList.innerHTML = '<p style="text-align: center; color: var(--text-muted-color);">Aucune sauvegarde trouvée.</p>';
-        } else {
-            saveNames.forEach(name => {
-                const item = document.createElement('div');
-                item.className = 'save-slot-item';
-
-                const nameSpan = document.createElement('span');
-                nameSpan.textContent = name;
-                if (name === getActiveSaveName()) {
-                    nameSpan.style.fontWeight = 'bold';
-                    nameSpan.style.color = 'var(--primary-color)';
-                }
-                item.appendChild(nameSpan);
-
-                const buttonsDiv = document.createElement('div');
-
-                if (mode === 'load') {
-                    const loadBtn = document.createElement('button');
-                    loadBtn.textContent = 'Charger';
-                    loadBtn.className = 'btn-primary';
-                    loadBtn.onclick = () => loadCampaign(name);
-                    buttonsDiv.appendChild(loadBtn);
-                } else { // mode === 'save'
-                    const overwriteBtn = document.createElement('button');
-                    overwriteBtn.textContent = 'Écraser';
-                    overwriteBtn.className = 'btn-primary';
-                    overwriteBtn.onclick = async () => {
-                        if (name.toLowerCase() === 'warp' || await showConfirm("Écraser la sauvegarde", `Êtes-vous sûr de vouloir écraser la sauvegarde "<b>${name}</b>" ?`)) {
-                            if (await saveCampaignAs(name)) {
-                                updateCampaignTitle();
-                                closeModal(saveLoadModal);
-                            }
-                        }
-                    };
-                    buttonsDiv.appendChild(overwriteBtn);
-                }
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Supprimer';
-                deleteBtn.className = 'btn-danger';
-                deleteBtn.style.marginLeft = '10px';
-                deleteBtn.onclick = async () => {
-                    if (await showConfirm("Supprimer la sauvegarde", `Êtes-vous sûr de vouloir supprimer la sauvegarde "<b>${name}</b>" ? Cette action est irréversible.`)) {
-                        deleteCampaign(name);
-                        if (getActiveSaveName() === null) {
-                            window.location.reload();
-                        } else {
-                            openSaveLoadModal(mode); // Refresh the list
-                            updateCampaignTitle();
-                        }
-                    }
-                };
-                buttonsDiv.appendChild(deleteBtn);
-                item.appendChild(buttonsDiv);
-                saveSlotsList.appendChild(item);
-            });
-        }
-
-        if (mode === 'load') {
-            saveLoadModalTitle.textContent = 'Charger une Campagne';
-            newSaveSection.classList.add('hidden');
-        } else {
-            saveLoadModalTitle.textContent = 'Sauvegarder la Campagne';
-            newSaveSection.classList.remove('hidden');
-            newSaveNameInput.value = getActiveSaveName() || '';
-            setTimeout(() => newSaveNameInput.focus(), 100);
-        }
-
-        openModal(saveLoadModal);
-    };
-
-    loadCampaignBtn.addEventListener('click', () => openSaveLoadModal('load'));
-    saveCampaignBtn.addEventListener('click', () => openSaveLoadModal('save'));
-    saveLoadCancelBtn.addEventListener('click', () => closeModal(saveLoadModal));
-
-    createNewSaveBtn.addEventListener('click', async () => {
-        const newName = newSaveNameInput.value;
-        if (await saveCampaignAs(newName)) {
-            updateCampaignTitle();
-            closeModal(saveLoadModal);
-        }
-    });
-    newSaveNameInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            createNewSaveBtn.click();
-        }
-    });
-
-    function updateCampaignTitle() {
-        const appTitle = document.querySelector('header h1');
-        const activeSave = getActiveSaveName();
-        if (activeSave) {
-            appTitle.innerHTML = `Nexus Crusade Tracker <span class="save-name-display">:: ${activeSave}</span>`;
-        } else {
-            appTitle.textContent = 'Nexus Crusade Tracker';
-        }
-    }
-
-
     //======================================================================
     //  GESTION DES ÉVÉNEMENTS PRINCIPAUX
     //======================================================================
@@ -173,6 +58,21 @@ document.addEventListener('DOMContentLoaded', () => {
     exportBtn.addEventListener('click', handleExport);
     importBtn.addEventListener('click', () => importFile.click());
     importFile.addEventListener('change', handleImport);
+    if (saveOnlineBtn) saveOnlineBtn.addEventListener('click', saveDataOnline);
+    if (loadOnlineBtn) loadOnlineBtn.addEventListener('click', loadDataOnline);
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            fullscreenBtn.textContent = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran';
+        });
+    }
     backToListBtn.addEventListener('click', () => switchView('list'));
 
     backToSystemBtn.addEventListener('click', () => {
@@ -183,18 +83,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    if (toggleAdminBtn) {
+        toggleAdminBtn.addEventListener('click', () => {
+            if (!isAdminMode) {
+                const pwd = prompt('Mot de passe admin:');
+                if (pwd !== 'warp') {
+                    showNotification('Mot de passe incorrect.', 'error');
+                    return;
+                }
+                isAdminMode = true;
+                showNotification('Mode Administrateur activé.', 'success');
+            } else {
+                isAdminMode = false;
+                showNotification('Mode Administrateur désactivé.', 'info');
+            }
+            updateAdminModeUI();
+        });
+    }
+
+    updateAdminModeUI();
+
     function handleModalClose(modal) {
         closeModal(modal);
-
+    
         if (modal === worldModal) {
-            mapViewingPlayerId = null;
+            mapViewingPlayerId = null; 
             renderActionLog();
             renderPlayerList();
         }
         if (modal === mapModal) {
             const previouslySelected = document.querySelector('.system-node.selected-for-action');
             if(previouslySelected) previouslySelected.classList.remove('selected-for-action');
-            selectedSystemOnMapId = null;
+            selectedSystemOnMapId = null; 
         }
     }
 
@@ -206,8 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     addPlayerBtn.addEventListener('click', () => {
-        if (!campaignData.isGalaxyGenerated && getActiveSaveName() !== 'warp') {
-            showNotification("Veuillez d'abord générer une galaxie avec le bouton 'Explosion du Warp' ou charger une sauvegarde.", 'warning');
+        if (!campaignData.isGalaxyGenerated) {
+            showNotification("Veuillez d'abord générer une galaxie avec le bouton 'Explosion du Warp'.", 'warning');
             return;
         }
         editingPlayerIndex = -1;
@@ -247,6 +167,11 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 showNotification("Erreur : ce joueur n'a pas de système assigné.", 'error');
             }
+        } else if (target.matches('.rules-btn')) {
+            const playerIndex = parseInt(target.dataset.index);
+            const player = campaignData.players[playerIndex];
+            renderCampaignRulesTab(player, 'rules-content-panel');
+            openModal(rulesModal);
         } else if (target.matches('.delete-player-btn')) {
             const index = parseInt(target.dataset.index);
             const playerToDelete = campaignData.players[index];
@@ -310,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (faction === 'Adepta Sororitas') {
                 initializeSororitasData(newPlayer);
             } else if (faction === 'Death Guard') {
-                initializeDeathGuardData(newPlayer);
+                initializeDeathGuardData(newPlayer); 
             } else if (faction === 'Tyranids') {
                 initializeTyranidData(newPlayer);
             }
@@ -346,17 +271,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('player-detail-view').addEventListener('click', (e) => {
         const button = e.target.closest('.tally-btn');
-        if (!button || activePlayerIndex === -1) return;
+        if (!button || activePlayerIndex === -1 || !isAdminMode) return;
         const player = campaignData.players[activePlayerIndex];
         const action = button.dataset.action;
         if (button.id === 'increase-supply-limit-btn') return;
-
+    
         const parts = action.split('-');
         const operation = parts[0];
         const stat = parts.slice(1).join('-');
-
+    
         const change = operation === 'increase' ? 1 : -1;
-
+    
         if (player.faction === 'Death Guard' && stat === 'contagion') {
             handleDeathGuardTallyButtons(player, stat, change);
             return;
@@ -388,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveData();
         renderPlayerDetail();
     });
-
+    
     document.getElementById('increase-supply-limit-btn').addEventListener('click', async () => {
         if (activePlayerIndex === -1) return;
         const player = campaignData.players[activePlayerIndex];
@@ -411,12 +336,12 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification(`Limite de ravitaillement augmentée à ${player.supplyLimit} PL !`, 'success');
         }
     });
-
+    
     const populateUnitSelector = () => {
         if (activePlayerIndex < 0) return;
         const player = campaignData.players[activePlayerIndex];
         const faction = player.faction;
-
+        
         let units = [];
         if (faction === 'Adepta Sororitas') {
             units = sororitasUnits || [];
@@ -427,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             units = factionUnits[faction] || [];
         }
-
+        
         const unitSelect = document.getElementById('unit-name');
         unitSelect.innerHTML = '<option value="" disabled selected>Choisir une unité...</option>';
 
@@ -438,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     };
-
+    
     const openUnitModal = () => {
         unitForm.reset();
         document.getElementById('unit-id').value = '';
@@ -446,21 +371,21 @@ document.addEventListener('DOMContentLoaded', () => {
         unitForm.dataset.initialGlory = "0";
         document.getElementById('unit-marked-for-glory').value = 0;
         document.getElementById('unit-rank-display').textContent = getRankFromXp(0);
-
-        populateUnitSelector();
+        
+        populateUnitSelector(); 
         populateUpgradeSelectors();
-
+    
         const player = campaignData.players[activePlayerIndex];
-
+        
         const degenerateBtn = document.getElementById('degenerate-unit-btn');
         if (player && player.faction === 'Death Guard') {
             degenerateBtn.classList.remove('hidden');
         } else {
             degenerateBtn.classList.add('hidden');
         }
-
+        
         updateUnitModalForTyranids(null, player);
-
+    
         openModal(unitModal);
     };
 
@@ -468,13 +393,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const unitPowerInput = document.getElementById('unit-power');
         const currentCost = parseInt(unitPowerInput.value) || 0;
         unitPowerInput.value = currentCost * 2;
-
+    
         const equipmentTextarea = document.getElementById('unit-equipment');
         const note = "\n- Effectif doublé.";
         if (!equipmentTextarea.value.includes(note)) {
             equipmentTextarea.value = (equipmentTextarea.value || '').trim() + note;
         }
-
+    
         unitPowerInput.dispatchEvent(new Event('change', { bubbles: true }));
         equipmentTextarea.dispatchEvent(new Event('change', { bubbles: true }));
     });
@@ -497,12 +422,12 @@ document.addEventListener('DOMContentLoaded', () => {
             openUnitModal();
             unitForm.dataset.initialXp = unit.xp || 0;
             unitForm.dataset.initialGlory = unit.markedForGlory || 0;
-
+            
             Object.keys(unit).forEach(key => {
                 let elementId = `unit-${key.replace(/([A-Z])/g, "-$1").toLowerCase()}`;
                 if (key === 'battleHonours') elementId = 'unit-honours';
                 else if (key === 'battleScars') elementId = 'unit-scars';
-
+                
                 const element = document.getElementById(elementId);
                 if (element) {
                     if (element.type === 'checkbox') element.checked = unit[key];
@@ -511,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             document.getElementById('unit-id').value = editingUnitIndex;
             document.getElementById('unit-rank-display').textContent = getRankFromXp(unit.xp || 0);
-
+            
             updateUnitModalForTyranids(unit, player);
             populateUpgradeSelectors();
 
@@ -528,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-
+    
     const updateAndSaveUnitDataFromForm = () => {
         if (editingUnitIndex < 0 || activePlayerIndex < 0) return;
         const name = document.getElementById('unit-name').value;
@@ -557,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const name = document.getElementById('unit-name').value;
         if (!name) return;
-
+    
         const player = campaignData.players[activePlayerIndex];
         const unitData = {
             name: name,
@@ -572,7 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
             battleScars: document.getElementById('unit-scars').value,
             markedForGlory: parseInt(document.getElementById('unit-marked-for-glory').value) || 0
         };
-
+    
         if (editingUnitIndex > -1) {
             const existingUnit = player.units[editingUnitIndex];
             player.units[editingUnitIndex] = { ...existingUnit, ...unitData };
@@ -582,45 +507,56 @@ document.addEventListener('DOMContentLoaded', () => {
             player.units.push(unitData);
             logAction(player.id, `Nouvelle unité ajoutée à l'ordre de bataille : <b>${unitData.name}</b>.`, 'info', '➕');
         }
-
+    
         saveData();
         renderPlayerDetail();
         closeModal(unitModal);
     });
 
     unitForm.addEventListener('change', updateAndSaveUnitDataFromForm);
-
-    planetarySystemDiv.addEventListener('click', async (e) => {
+    
+    planetarySystemDiv.addEventListener('click', async (e) => { 
         const planetElement = e.target.closest('.planet');
         if (planetElement) {
             const { systemId, planetIndex } = planetElement.dataset;
             const system = campaignData.systems.find(s => s.id === systemId);
             const planet = system.planets[planetIndex];
-
+            
             const isDevoured = planet.name.includes('(Dévorée)');
 
             if (isDevoured) {
-                showNotification("Cette planète est un rocher stérile, dévoré par l'essaim. Elle не peut plus être colonisée.", 'info');
+                showNotification("Cette planète est un rocher stérile, dévoré par l'essaim. Elle ne peut plus être colonisée.", 'info');
                 return;
             }
 
+            // ====================== DÉBUT DE LA CORRECTION ======================
+            // Le bloc `if` spécial pour les Tyranides est supprimé.
+            // Tous les clics passent désormais par openPlanetModalAndCombat.
             openPlanetModalAndCombat(planet, systemId, planetIndex);
-
-            return;
+            // ====================== FIN DE LA CORRECTION ======================
+            
+            return; 
         }
     });
 
+    // ====================== DÉBUT DE LA CORRECTION ======================
     function openPlanetModalAndCombat(planet, systemId, planetIndex, attackIntent = 'conquer') {
+        // La logique est modifiée pour TOUJOURS ouvrir la fenêtre de détails.
+        // Les boutons dans cette fenêtre déclencheront ensuite le combat.
         openPlanetDetailsModal(planet, systemId, planetIndex);
     }
+    // ====================== FIN DE LA CORRECTION ======================
 
+    // ====================== DÉBUT DU NOUVEL AJOUT ======================
     function updatePlanetModalForTyranids(planet, viewingPlayer, system) {
         const actionsContainer = document.getElementById('planet-actions-container');
+        // Ne vide plus le conteneur ici pour permettre à d'autres factions d'ajouter leurs boutons
 
         if (!viewingPlayer || viewingPlayer.id === planet.owner) {
-            return;
+            return; // Ne rien faire si c'est la planète du joueur
         }
-
+    
+        // Si aucun bouton d'assaut n'existe, on en crée un
         if (!actionsContainer.querySelector('.btn-primary')) {
             const attackButton = document.createElement('button');
             attackButton.className = 'btn-primary';
@@ -636,12 +572,13 @@ document.addEventListener('DOMContentLoaded', () => {
             actionsContainer.appendChild(attackButton);
         }
 
+        // Ajout des boutons spécifiques aux Tyranids
         if (viewingPlayer.faction === 'Tyranids') {
             const conquerButton = actionsContainer.querySelector('.btn-primary');
             if (conquerButton) {
-                conquerButton.textContent = 'Conquérir la Planète';
+                conquerButton.textContent = 'Conquérir la Planète'; // Renommer le bouton d'assaut existant
             }
-
+            
             const devourButton = document.createElement('button');
             devourButton.className = 'btn-danger';
             devourButton.textContent = 'Dévorer la Planète';
@@ -663,7 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         winsAchieved: 0,
                         currentStage: 'invasion'
                     };
-
+    
                     if (!viewingPlayer.tyranidData.devourTargets) {
                         viewingPlayer.tyranidData.devourTargets = [];
                     }
@@ -675,7 +612,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     showNotification(`La dévoration de ${planet.name} a commencé ! Gagnez la bataille pour progresser.`, 'success');
                 }
-
+    
+                // Lancer le combat après avoir marqué la planète comme cible
                 if (planet.owner === 'neutral') {
                     openNpcCombatModal(planet.id, 'devour');
                 } else {
@@ -685,6 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
             actionsContainer.appendChild(devourButton);
         }
     }
+    // ====================== FIN DU NOUVEL AJOUT ======================
 
     function openPlanetDetailsModal(planet, systemId, planetIndex) {
         const adminControls = document.getElementById('admin-controls');
@@ -769,25 +708,46 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             deadWorldContainer.classList.add('hidden');
         }
-
+        
         const actionsContainer = document.getElementById('planet-actions-container');
         actionsContainer.innerHTML = '';
         const viewingPlayer = campaignData.players.find(p => p.id === mapViewingPlayerId);
 
+        // Afficher la force de défense actuelle de la planète
+        const defenseInfo = document.createElement('div');
+        defenseInfo.className = 'info-box';
+        defenseInfo.innerHTML = `<strong>Défense :</strong> <span>${planet.defense || 0} pts</span>`;
+        actionsContainer.appendChild(defenseInfo);
+
+        // Ajouter un bouton permettant de diviser par deux la défense pour 1 PR
+        if (planet.defense > 0) {
+            const halveBtn = document.createElement('button');
+            halveBtn.type = 'button';
+            halveBtn.className = 'btn-secondary';
+            halveBtn.textContent = 'Saboter les Défenses (1 PR)';
+            halveBtn.style.width = '100%';
+            halveBtn.style.marginTop = '10px';
+            halveBtn.onclick = halvePlanetDefense;
+            actionsContainer.appendChild(halveBtn);
+        }
+        
+        // ====================== DÉBUT DE LA CORRECTION ======================
         updatePlanetModalForDeathGuard(planet, viewingPlayer);
 
+        // Appel de la nouvelle fonction pour les Tyranids (et les boutons d'assaut généraux)
         const system = campaignData.systems.find(s => s.id === systemId);
         updatePlanetModalForTyranids(planet, viewingPlayer, system);
-
+        // ====================== FIN DE LA CORRECTION ======================
+        
         ownerSelect.dispatchEvent(new Event('change'));
         openModal(planetTypeModal);
     }
+    
 
     worldModal.addEventListener('click', (e) => {
         if (e.target.id === 'show-map-btn') {
             openModal(mapModal);
             currentMapScale = 1;
-            renderCampaignRulesTab();
             setTimeout(renderGalacticMap, 50);
         } else if (e.target.id === 'show-history-btn') {
             openFullHistoryModal();
@@ -816,36 +776,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const system = campaignData.systems.find(s => s.id === systemId);
         const planet = system.planets[planetIndex];
         const oldOwner = planet.owner;
-
+    
         const newOwnerId = document.getElementById('planet-owner-select').value;
         planet.type = document.getElementById('planet-type-select').value;
         planet.name = document.getElementById('planet-name-input').value.trim() || planet.name;
         planet.owner = newOwnerId;
         planet.defense = (planet.owner === 'neutral') ? parseInt(document.getElementById('planet-defense-input').value) || 0 : 0;
-
+    
         if (oldOwner === 'neutral' && newOwnerId !== 'neutral') {
             const newOwnerPlayer = campaignData.players.find(p => p.id === newOwnerId);
             if (newOwnerPlayer) {
                 logAction(newOwnerPlayer.id, `A conquis la planète <b>${planet.name}</b> dans le système <b>${system.name}</b>.`, 'conquest', '🪐');
             }
         }
-
+    
         saveData();
         renderPlanetarySystem(systemId);
         closeModal(planetTypeModal);
-
+    
         if (newOwnerId !== 'neutral') {
             placePlayerSystemOnMap(newOwnerId);
         }
     });
-
+    
     document.getElementById('unlock-admin-btn').addEventListener('click', () => {
         const passwordInput = document.getElementById('admin-password');
         const adminControls = document.getElementById('admin-controls');
         const unlockBtn = document.getElementById('unlock-admin-btn');
         const lockBtn = document.getElementById('lock-admin-btn');
         const adminPasswordGroup = passwordInput.parentElement;
-
+    
         if (passwordInput.value === 'warp') {
             adminControls.classList.remove('hidden');
             adminPasswordGroup.classList.add('hidden');
@@ -858,14 +818,14 @@ document.addEventListener('DOMContentLoaded', () => {
             adminControls.classList.add('hidden');
         }
     });
-
+    
     document.getElementById('lock-admin-btn').addEventListener('click', () => {
         const adminControls = document.getElementById('admin-controls');
         const passwordInput = document.getElementById('admin-password');
         const unlockBtn = document.getElementById('unlock-admin-btn');
         const lockBtn = document.getElementById('lock-admin-btn');
         const adminPasswordGroup = passwordInput.parentElement;
-
+    
         adminControls.classList.add('hidden');
         adminPasswordGroup.classList.remove('hidden');
         unlockBtn.classList.remove('hidden');
@@ -894,7 +854,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification(`Planète randomisée ! Nouveau type : <b>${planet.type}</b>.`, 'success');
         }
     });
-
+    
     document.getElementById('link-dead-world-btn').addEventListener('click', async (e) => {
         const sourceSystemId = document.getElementById('planet-system-id').value;
         const targetSystemId = document.getElementById('dead-world-link-select').value;
@@ -910,7 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetSystem = campaignData.systems.find(s => s.id === targetSystemId);
 
         if (await showConfirm("Confirmer le Portail", `Voulez-vous créer un portail permanent entre <b>${sourceSystem.name}</b> et <b>${targetSystem.name}</b> ? Cette action est irréversible.`)) {
-            const linkExists = (campaignData.gatewayLinks || []).some(link =>
+            const linkExists = (campaignData.gatewayLinks || []).some(link => 
                 (link.systemId1 === sourceSystemId && link.systemId2 === targetSystemId) ||
                 (link.systemId1 === targetSystemId && link.systemId2 === sourceSystemId)
             );
@@ -925,7 +885,7 @@ document.addEventListener('DOMContentLoaded', () => {
             logAction(viewingPlayer.id, `Un portail de <b>Monde Mort</b> a été activé entre <b>${sourceSystem.name}</b> et <b>${targetSystem.name}</b>.`, 'info', '🌀');
             saveData();
             showNotification("Portail du Monde Mort activé !", 'success');
-
+            
             linkButton.disabled = true;
 
             setTimeout(() => {
@@ -966,7 +926,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const arrow = e.target.closest('.explore-arrow');
         if (arrow && arrow.style.cursor !== 'not-allowed') handleExploration(arrow.id.replace('explore-', ''));
     });
-
+    
     mapContainer.addEventListener('wheel', (e) => {
         e.preventDefault();
         const viewport = mapContainer.querySelector('.map-viewport');
@@ -1002,17 +962,17 @@ document.addEventListener('DOMContentLoaded', () => {
             wasDragged = false;
             return;
         }
-
+    
         const systemNode = e.target.closest('.system-node');
         const previouslySelectedNode = document.querySelector('.system-node.selected-for-action');
-
+    
         if (previouslySelectedNode) {
             previouslySelectedNode.classList.remove('selected-for-action');
         }
-
+    
         if (systemNode) {
             const systemId = systemNode.dataset.systemId;
-
+            
             if (systemId === selectedSystemOnMapId) {
                 if (systemNode.classList.contains('probed-only')) {
                     showNotification("Ce système a seulement été sondé. Établissez une connexion depuis un système adjacent pour y voyager.", "info");
@@ -1031,10 +991,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             selectedSystemOnMapId = null;
         }
-
+        
         updateMapProbeControls();
     });
-
+    
     document.getElementById('map-player-view-select').addEventListener('change', (e) => {
         mapViewingPlayerId = e.target.value;
         renderGalacticMap();
@@ -1051,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.querySelectorAll('#map-modal .tab-link').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('#map-modal .map-modal-content-panel').forEach(panel => panel.classList.add('hidden'));
-
+            
             e.target.classList.add('active');
             document.getElementById(targetTab).classList.remove('hidden');
         }
@@ -1089,11 +1049,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (confirmReset) {
             generateGalaxy();
             const playerSystems = [];
-
+    
             campaignData.sessionLog = [];
             campaignData.players.forEach(player => {
                 player.actionLog = [];
-
+    
                 const newSystemId = crypto.randomUUID();
                 const DEFENSE_VALUES = [500, 1000, 1500, 2000];
                 const planetNames = ["Prima", "Secundus", "Tertius", "Quartus", "Quintus", "Sextus", "Septimus", "Octavus"];
@@ -1113,9 +1073,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 playerSystems.push(newSystem);
                 player.systemId = newSystemId;
-                player.discoveredSystemIds = [newSystemId];
+                player.discoveredSystemIds = [newSystemId]; 
             });
-
+    
             campaignData.systems.push(...playerSystems);
             logGlobalAction(`<b>EXPLOSION DU WARP !</b> Une nouvelle galaxie a été générée.`, 'alert', '💥');
             saveData();
@@ -1124,7 +1084,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification("Le Warp a tout consumé ! Une nouvelle galaxie a été générée.", 'success', 8000);
         }
     });
-
+    
     actionLogHeader.addEventListener('click', () => {
         const title = actionLogHeader.querySelector('h4');
         actionLogContainer.classList.toggle('minimized');
@@ -1156,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     upgradesSection.addEventListener('mouseout', () => {
         customTooltip.style.opacity = '0';
     });
-
+    
     document.getElementById('add-detachment-upgrade-btn').addEventListener('click', async () => {
         const select = document.getElementById('detachment-upgrade-select');
         const selectedOption = select.options[select.selectedIndex];
@@ -1185,7 +1145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             addUpgradeToUnitData(unit, 'unit-honours', upgradeName, `(${upgradeCost} pts)`, "Optimisation: ");
 
             logAction(player.id, `Achète l'optimisation <i>${upgradeName}</i> pour <b>${unit.name}</b> (1 PR).`, 'info', '⚙️');
-
+            
             saveData();
             renderPlayerDetail();
             showNotification(`Optimisation "${upgradeName}" ajoutée !`, 'success');
@@ -1193,17 +1153,17 @@ document.addEventListener('DOMContentLoaded', () => {
             select.value = '';
         }
     });
-
+    
     function openNpcCombatModal(planetId, attackIntent = 'conquer') {
         const attacker = campaignData.players.find(p => p.id === mapViewingPlayerId);
         if (!attacker) return;
-
+    
         closeModal(planetTypeModal);
-
+    
         document.getElementById('npc-combat-attacker-name').textContent = attacker.name;
         const defenderSelect = document.getElementById('npc-combat-defender-select');
         defenderSelect.innerHTML = '<option value="" disabled selected>Sélectionner un défenseur...</option>';
-
+    
         campaignData.players.forEach(p => {
             if (p.id !== attacker.id) {
                 const option = document.createElement('option');
@@ -1212,38 +1172,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 defenderSelect.appendChild(option);
             }
         });
-
+    
         npcCombatModal.dataset.planetId = planetId;
         npcCombatModal.dataset.attackIntent = attackIntent;
         openModal(npcCombatModal);
     }
-
+    
     document.getElementById('finish-npc-combat-btn').addEventListener('click', async () => {
         const attacker = campaignData.players.find(p => p.id === mapViewingPlayerId);
         const defenderId = document.getElementById('npc-combat-defender-select').value;
         const planetId = npcCombatModal.dataset.planetId;
-        const attackIntent = npcCombatModal.dataset.attackIntent;
-
+        const attackIntent = npcCombatModal.dataset.attackIntent; 
+    
         if (!attacker || !defenderId || !planetId) {
             showNotification("Veuillez sélectionner un défenseur.", "warning");
             return;
         }
-
+    
         const defender = campaignData.players.find(p => p.id === defenderId);
         const system = campaignData.systems.find(s => s.planets.some(p => p.id === planetId));
         const planet = system.planets.find(p => p.id === planetId);
-
+    
         const okBtn = document.getElementById('confirm-modal-ok-btn');
         const cancelBtn = document.getElementById('confirm-modal-cancel-btn');
         const originalOkText = okBtn.textContent;
         const originalCancelText = cancelBtn.textContent;
-
+    
         try {
             okBtn.textContent = "Victoire";
             cancelBtn.textContent = "Défaite";
-
+    
             const hasWon = await showConfirm("Résultat du Combat", `L'attaquant, <b>${attacker.name}</b>, a-t-il remporté la bataille contre les PNJ défendus par <b>${defender.name}</b> ?`);
-
+            
+            // MODIFIÉ : Nouvelle logique Tyranide
             if (attacker.faction === 'Tyranids' && attackIntent === 'devour') {
                 const target = attacker.tyranidData.devourTargets.find(t => t.planetId === planetId);
                 if (target) {
@@ -1253,6 +1214,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         target.winsAchieved++;
 
                         if (target.winsAchieved >= target.winsNeeded) {
+                            // DÉVORAISON COMPLÈTE
                             const rewards = tyranidCrusadeRules.worldTypeRewards[target.worldType] || { npcBiomass: 1, rp: 0 };
                             const biomassGained = rewards.npcBiomass;
                             const rpGained = rewards.rp;
@@ -1266,9 +1228,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             attacker.tyranidData.devouredPlanetIds.push(planet.id);
                             attacker.tyranidData.devourTargets = attacker.tyranidData.devourTargets.filter(t => t.planetId !== planetId);
-
+                            
                             logAction(attacker.id, `<b>DÉVORATION RÉUSSIE !</b> La planète PNJ <b>${planet.name}</b> est stérile. Gain : ${biomassGained} Biomasse, ${rpGained} PR.`, 'conquest', '☣️');
-
+                            
+                            // Déclenche la phase de Biogenèse
                             await showBiogenesisModal(attacker);
                         }
                     } else {
@@ -1277,7 +1240,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         logAction(attacker.id, `<b>Échec.</b> L'assaut pour dévorer <b>${planet.name}</b> a été repoussé. +1 PR.`, 'info', '⚔️');
                     }
                 }
-            } else {
+            } else { // --- Logique de conquête normale ---
                 if (hasWon) {
                     attacker.battles.wins = (attacker.battles.wins || 0) + 1;
                     attacker.requisitionPoints++;
@@ -1290,20 +1253,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     logAction(attacker.id, `<b>Défaite</b> contre les PNJ sur <b>${planet.name}</b> (défendus par ${defender.name}). +1 PR.`, 'info', '⚔️');
                 }
             }
-
+        
             defender.freeProbes = (defender.freeProbes || 0) + 1;
             defender.battles.npcGames = (defender.battles.npcGames || 0) + 1;
             logAction(defender.id, `A reçu <b>1 Sonde Gratuite</b> pour avoir incarné les PNJ contre <b>${attacker.name}</b>.`, 'info', '🛰️');
-
+        
             saveData();
             closeModal(npcCombatModal);
             renderPlanetarySystem(system.id);
-
+            
             if (!playerDetailView.classList.contains('hidden')) {
                 renderPlayerDetail();
             }
             showNotification("Résultat de la bataille enregistré.", "success");
-
+    
         } finally {
             okBtn.textContent = originalOkText;
             cancelBtn.textContent = originalCancelText;
@@ -1314,65 +1277,66 @@ document.addEventListener('DOMContentLoaded', () => {
         const attacker = campaignData.players.find(p => p.id === mapViewingPlayerId);
         const system = campaignData.systems.find(s => s.planets.some(p => p.id === planetId));
         if (!attacker || !system) return;
-
+    
         const planet = system.planets.find(p => p.id === planetId);
         if (!planet) return;
-
+    
         const defender = campaignData.players.find(p => p.id === planet.owner);
         if (!defender) return;
-
+    
         closeModal(planetTypeModal);
-
+    
         document.getElementById('pvp-combat-attacker-name').textContent = attacker.name;
         document.getElementById('pvp-combat-defender-name').textContent = defender.name;
-
+    
         pvpCombatModal.dataset.planetId = planetId;
         pvpCombatModal.dataset.attackerId = attacker.id;
         pvpCombatModal.dataset.defenderId = defender.id;
         pvpCombatModal.dataset.attackIntent = attackIntent;
         openModal(pvpCombatModal);
     }
-
+    
     document.getElementById('finish-pvp-combat-btn').addEventListener('click', async () => {
         const { planetId, attackerId, defenderId, attackIntent } = pvpCombatModal.dataset;
-
+    
         if (!planetId || !attackerId || !defenderId) return;
-
+    
         const attacker = campaignData.players.find(p => p.id === attackerId);
         const defender = campaignData.players.find(p => p.id === defenderId);
         const system = campaignData.systems.find(s => s.planets.some(p => p.id === planetId));
         const planet = system.planets.find(p => p.id === planetId);
-
+    
         if (!attacker || !defender || !system || !planet) {
             showNotification("Erreur critique, données de combat introuvables.", "error");
             return;
         }
-
+    
         const blindJumpBtn = document.getElementById('exploration-choice-blind-jump-btn');
         const probeBtn = document.getElementById('exploration-choice-probe-btn');
         const originalBlindJumpText = blindJumpBtn.textContent;
         const originalProbeText = probeBtn.textContent;
         const originalProbeClass = probeBtn.className;
-
+    
         try {
             blindJumpBtn.textContent = `Victoire de l'attaquant (${attacker.name})`;
             probeBtn.textContent = `Victoire du défenseur (${defender.name})`;
             probeBtn.className = 'btn-primary';
-
+    
             const outcome = await showExplorationChoice(
-                "Résultat de la Bataille",
+                "Résultat de la Bataille", 
                 `Qui a remporté la bataille pour le contrôle de <b>${planet.name}</b> ?`
             );
-
+    
             if (outcome === 'cancel') {
                 return;
             }
-
+    
             const attackerWon = outcome === 'blind_jump';
-
+    
             attacker.requisitionPoints++;
             defender.requisitionPoints++;
-
+            
+            // MODIFIÉ : Nouvelle logique de dévoration Tyranide
             if (attacker.faction === 'Tyranids' && attackIntent === 'devour' && attackerWon) {
                 const target = attacker.tyranidData.devourTargets.find(t => t.planetId === planetId);
                 if (target) {
@@ -1383,6 +1347,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const previousStage = tyranidCrusadeRules.devourStages[target.currentStage];
 
                     if (target.winsAchieved >= target.winsNeeded) {
+                        // DÉVORAISON COMPLÈTE
                         const rewards = tyranidCrusadeRules.worldTypeRewards[target.worldType] || { playerBiomass: 1, rp: 0 };
                         const biomassGained = rewards.playerBiomass;
                         const rpGained = rewards.rp;
@@ -1392,16 +1357,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         planet.owner = 'neutral';
                         planet.name = `${planet.name.replace(' (Dévorée)', '')} (Dévorée)`;
-
+                        
                         attacker.tyranidData.devouredPlanetIds.push(planet.id);
                         attacker.tyranidData.devourTargets = attacker.tyranidData.devourTargets.filter(t => t.planetId !== planetId);
-
+                        
                         logAction(attacker.id, `<b>DÉVORATION TERMINÉE !</b> La planète <b>${planet.name}</b> de <b>${defender.name}</b> est stérile. Gain: ${biomassGained} Biomasse, ${rpGained} PR.`, 'conquest', '☣️');
                         logAction(defender.id, `<b>PLANÈTE PERDUE !</b> Votre planète <b>${planet.name}</b> a été dévorée par <b>${attacker.name}</b>. +1 PR.`, 'alert', '💀');
-
+                        
                         await showBiogenesisModal(attacker);
 
                     } else {
+                        // PROGRESSION VERS L'ÉTAPE SUIVANTE
                         let nextStageKey = '';
                         if (target.currentStage === 'invasion') nextStageKey = 'predation';
                         if (target.currentStage === 'predation') nextStageKey = 'consommation';
@@ -1412,49 +1378,49 @@ document.addEventListener('DOMContentLoaded', () => {
                         logAction(defender.id, `<b>Défaite.</b> Vous avez repoussé l'essaim sur <b>${planet.name}</b>, mais il progresse... +1 PR.`, 'info', '⚔️');
                     }
                 }
-            } else {
+            } else { // --- Logique de conquête normale OU défaite du Tyranide ---
                 if (attackerWon) {
                     attacker.battles.wins = (attacker.battles.wins || 0) + 1;
                     defender.battles.losses = (defender.battles.losses || 0) + 1;
-
+                    
                     const oldOwnerName = defender.name;
                     planet.owner = attacker.id;
                     logAction(attacker.id, `<b>Victoire !</b> Vous avez conquis la planète <b>${planet.name}</b> de <b>${oldOwnerName}</b>. +1 PR.`, 'conquest', '🏆');
                     logAction(defender.id, `<b>Défaite.</b> Vous avez perdu la planète <b>${planet.name}</b> face à <b>${attacker.name}</b>. +1 PR.`, 'info', '⚔️');
                     showNotification(`Victoire de ${attacker.name} ! La planète ${planet.name} est conquise.`, "success");
-
-                } else {
+        
+                } else { 
                     defender.battles.wins = (defender.battles.wins || 0) + 1;
                     attacker.battles.losses = (attacker.battles.losses || 0) + 1;
-
+        
                     logAction(defender.id, `<b>Victoire !</b> Vous avez défendu la planète <b>${planet.name}</b> contre <b>${attacker.name}</b>. +1 PR.`, 'conquest', '🛡️');
                     logAction(attacker.id, `<b>Défaite.</b> Votre assaut sur <b>${planet.name}</b> a été repoussé par <b>${defender.name}</b>. +1 PR.`, 'info', '⚔️');
                     showNotification(`Victoire de ${defender.name} ! La planète ${planet.name} a été défendue.`, "success");
                 }
             }
-
+    
             saveData();
             closeModal(pvpCombatModal);
             renderPlanetarySystem(system.id);
-
+    
             if (!playerDetailView.classList.contains('hidden')) {
                 renderPlayerDetail();
             }
-
+    
         } finally {
             blindJumpBtn.textContent = originalBlindJumpText;
             probeBtn.textContent = originalProbeText;
             probeBtn.className = originalProbeClass;
         }
     });
-
+    
     function openFullHistoryModal() {
         const viewingPlayer = campaignData.players.find(p => p.id === mapViewingPlayerId);
         if (!viewingPlayer) {
             showNotification("Aucun joueur n'est actuellement consulté.", 'warning');
             return;
         }
-
+        
         document.getElementById('full-history-modal-title').textContent = `Historique Complet pour ${viewingPlayer.name}`;
         historyDateFilter.value = '';
         renderFullHistory();
@@ -1514,7 +1480,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const sourceSystem = campaignData.systems.find(s => s.id === selectedSystemOnMapId);
         const viewingPlayer = campaignData.players.find(p => p.id === mapViewingPlayerId);
-
+        
         if (!sourceSystem || !viewingPlayer) {
             showNotification("Erreur : Système source ou joueur introuvable.", 'error');
             return;
@@ -1526,7 +1492,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification("<b>Blocus ennemi !</b> Vous ne pouvez pas sonder depuis ce système tant qu'une planète ennemie est présente.", 'error');
             return;
         }
-
+    
         const parentPos = sourceSystem.position;
         const targetPos = { x: parentPos.x, y: parentPos.y };
         if (direction === 'up') targetPos.y -= STEP_DISTANCE;
@@ -1534,9 +1500,9 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (direction === 'left') targetPos.x -= STEP_DISTANCE;
         else if (direction === 'right') targetPos.x += STEP_DISTANCE;
         const targetSystem = campaignData.systems.find(s => s.position && s.position.x === targetPos.x && s.position.y === targetPos.y);
-
+    
         const probeSuccessful = await performProbe(sourceSystem, targetSystem, direction, viewingPlayer);
-
+    
         if (probeSuccessful) {
             if (!playerDetailView.classList.contains('hidden')) renderPlayerDetail();
             renderGalacticMap();
@@ -1552,10 +1518,10 @@ document.addEventListener('DOMContentLoaded', () => {
     //======================================================================
     //  INITIALISATION
     //======================================================================
-
+    
     loadDataFromStorage();
     migrateData();
-
+    
     if (typeof initializeDeathGuardGameplay === 'function') {
         initializeDeathGuardGameplay();
     }
@@ -1565,15 +1531,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof initializeTyranidGameplay === 'function') {
         initializeTyranidGameplay();
     }
-
+    
     renderPlayerList();
     renderActionLog();
-    updateCampaignTitle();
     if (campaignData.players.length > 0) {
         mapViewingPlayerId = campaignData.players[0].id;
         displayPendingNotifications();
     }
-
+    
     document.getElementById('degenerate-unit-btn').addEventListener('click', async () => {
         if (activePlayerIndex < 0 || editingUnitIndex < 0) return;
 
@@ -1600,7 +1565,7 @@ document.addEventListener('DOMContentLoaded', () => {
             player.requisitionPoints -= cost;
 
             const oldName = unit.name;
-
+            
             unit.name = "Rejetons du Chaos de Nurgle";
             unit.power = 80;
             unit.role = "Bête";
@@ -1633,17 +1598,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (confirmed) {
             player.requisitionPoints -= cost;
-            unit.battleScars = "";
-            document.getElementById('unit-scars').value = "";
+            unit.battleScars = ""; 
+            document.getElementById('unit-scars').value = ""; 
 
             let logMessage = `A utilisé 'L'Illumination par la Douleur' sur <b>${unit.name}</b> pour 1 PR.`;
             let notificationMessage = "Séquelles effacées ! N'oubliez pas de choisir un Honneur de Bataille.";
 
             if (unit.id === player.sainthood.potentiaUnitId) {
                 const activeTrialId = player.sainthood.activeTrial;
-
+                
                 player.sainthood.trials[activeTrialId] = Math.min(10, (player.sainthood.trials[activeTrialId] || 0) + 2);
-
+                
                 player.sainthood.martyrdomPoints = (player.sainthood.martyrdomPoints || 0) + 1;
                 player.sainthood.trials.souffrance = Math.min(10, (player.sainthood.trials.souffrance || 0) + 3);
 
@@ -1657,90 +1622,4 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification(notificationMessage, 'success', 7000);
         }
     });
-
-    //======================================================================
-    //  GESTION DES SAUVEGARDES EN LIGNE
-    //======================================================================
-
-    const onlineSaveBtn = document.getElementById('online-save-btn');
-    const onlineLoadBtn = document.getElementById('online-load-btn');
-
-    async function saveCampaignOnline() {
-        const activeSaveName = getActiveSaveName();
-        if (!activeSaveName) {
-            showNotification("Veuillez d'abord sauvegarder localement pour avoir un nom de campagne actif.", "warning");
-            return;
-        }
-
-        onlineSaveBtn.disabled = true;
-        onlineSaveBtn.textContent = 'Sauvegarde...';
-
-        try {
-            const response = await fetch(`/.netlify/functions/saveCampaign?key=${encodeURIComponent(activeSaveName)}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(campaignData)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `Erreur HTTP ${response.status}`);
-            }
-
-            showNotification(`Campagne "<b>${activeSaveName}</b>" sauvegardée en ligne avec succès !`, 'success');
-            closeModal(saveLoadModal);
-
-        } catch (error) {
-            console.error("Erreur lors de la sauvegarde en ligne:", error);
-            showNotification(`Échec de la sauvegarde en ligne : ${error.message}`, 'error');
-        } finally {
-            onlineSaveBtn.disabled = false;
-            onlineSaveBtn.textContent = 'Sauvegarder en ligne';
-        }
-    }
-
-    async function loadCampaignOnline() {
-        const key = prompt("Entrez le nom de la sauvegarde en ligne que vous souhaitez charger :");
-        if (!key) return;
-
-        onlineLoadBtn.disabled = true;
-        onlineLoadBtn.textContent = 'Chargement...';
-
-        try {
-            const response = await fetch(`/.netlify/functions/loadCampaign?key=${encodeURIComponent(key)}`);
-
-            if (response.status === 404) {
-                 showNotification(`Aucune sauvegarde en ligne trouvée pour "<b>${key}</b>".`, 'warning');
-                 return;
-            }
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `Erreur HTTP ${response.status}`);
-            }
-
-            const loadedData = await response.json();
-
-            const newLocalName = prompt("Sauvegarde en ligne chargée. Entrez un nom pour la sauvegarder localement :", `${key}-online`);
-            if (newLocalName) {
-                campaignData = loadedData;
-                await saveCampaignAs(newLocalName);
-                showNotification(`Campagne "<b>${key}</b>" chargée et sauvegardée localement sous "<b>${newLocalName}</b>". Rechargement...`, 'success');
-                setTimeout(() => window.location.reload(), 1500);
-            }
-
-        } catch (error) {
-            console.error("Erreur lors du chargement en ligne:", error);
-            showNotification(`Échec du chargement en ligne : ${error.message}`, 'error');
-        } finally {
-            onlineLoadBtn.disabled = false;
-            onlineLoadBtn.textContent = 'Charger la sauvegarde en ligne';
-        }
-    }
-
-    if (onlineSaveBtn) {
-        onlineSaveBtn.addEventListener('click', saveCampaignOnline);
-    }
-    if (onlineLoadBtn) {
-        onlineLoadBtn.addEventListener('click', loadCampaignOnline);
-    }
 });
