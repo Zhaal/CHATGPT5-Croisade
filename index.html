@@ -15,16 +15,16 @@
         <header>
             <h1>Nexus Crusade Tracker</h1>
             <div class="campaign-controls">
+                <button id="load-campaign-btn" class="btn-secondary">Charger</button>
+                <button id="save-campaign-btn" class="btn-primary">Sauvegarder</button>
+                <span style="border-left: 1px solid #444; margin: 0 10px;"></span>
                 <button id="export-btn">Exporter la Campagne (JSON)</button>
                 <button id="import-btn">Importer la Campagne (JSON)</button>
                 <input type="file" id="import-file" accept=".json" style="display: none;">
-                <button id="save-online-btn">Sauvegarder en ligne</button>
-                <button id="load-online-btn">Charger en ligne</button>
-                <button id="fullscreen-btn">Plein écran</button>
             </div>
             <p class="storage-warning">
-              ⚠️ <strong>Attention :</strong> Toutes les données sont sauvegardées localement dans votre navigateur.
-                Utilisez l'export ou la sauvegarde en ligne pour créer des sauvegardes !
+              ⚠️ **Attention :** Toutes les données sont sauvegardées localement dans votre navigateur.
+                Utilisez l'export pour créer des sauvegardes !
             </p>
             <div class="management-controls">
                 <button id="reset-campaign-btn" class="btn-danger">Explosion du Warp (Réinitialiser)</button>
@@ -44,7 +44,6 @@
                 <span>
                     <button id="back-to-system-btn" class="hidden" style="margin-right: 10px;">&larr; Retour au système</button>
                     <button id="back-to-list-btn">&larr; Retour à la liste</button>
-                    <button id="toggle-admin-btn" class="btn-secondary" style="margin-left: 10px;">Mode Admin</button>
                 </span>
             </div>
             <div class="player-info-grid">
@@ -347,7 +346,7 @@
 </div>
 
                         <div id="legion-of-shadow-section" class="upgrade-control-group hidden">
-                            <label for="legion-of-shadow-select">Optimisation de l'Ombre</label>
+                            <label for="legion-of-shadow-select">Optimisation de l'Ombre (+1 PR)</label>
                             <div class="input-group">
                                 <select id="legion-of-shadow-select"><option>Choisir une optimisation...</option></select>
                                 <button type="button" class="btn-secondary" id="add-legion-of-shadow-btn">Ajouter</button>
@@ -498,6 +497,7 @@
 
             <div class="map-modal-tabs">
                 <button class="tab-link active" data-tab="map-content-panel">Carte</button>
+                <button class="tab-link" data-tab="info-content-panel">Regles Adapter pour la campagne</button>
             </div>
 
             <div id="map-content-panel" class="map-modal-content-panel active">
@@ -518,6 +518,9 @@
                 <div id="galactic-map-container">
                 </div>
             </div>
+
+            <div id="info-content-panel" class="map-modal-content-panel hidden">
+                </div>
         </div>
     </div>
 
@@ -689,14 +692,6 @@
         </div>
     </div>
 
-    <div id="rules-modal" class="modal hidden">
-        <div class="modal-content large">
-            <span class="close-btn">&times;</span>
-            <h3 id="rules-modal-title">Comparaison des Règles</h3>
-            <div id="rules-content-panel"></div>
-        </div>
-    </div>
-
     <div id="unit-choice-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
@@ -709,6 +704,24 @@
             <div class="modal-actions">
                 <button id="unit-choice-cancel-btn" class="btn-secondary">Annuler</button>
                 <button id="unit-choice-ok-btn" class="btn-primary">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="save-load-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="save-load-modal-title">Gestion des Sauvegardes</h3>
+            <div id="save-slots-list" style="margin-top: 20px; max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px;">
+                <!-- Les sauvegardes seront listées ici -->
+            </div>
+            <div id="new-save-section" style="margin-top: 20px;">
+                <label for="new-save-name-input">Nouvelle sauvegarde :</label>
+                <input type="text" id="new-save-name-input" placeholder="Entrez un nom...">
+                <button id="create-new-save-btn" class="btn-primary" style="margin-left: 10px;">Sauvegarder</button>
+            </div>
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button id="save-load-cancel-btn" class="btn-secondary">Annuler</button>
             </div>
         </div>
     </div>

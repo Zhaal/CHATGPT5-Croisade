@@ -94,11 +94,6 @@ button:hover, .btn-primary:hover {
     background-color: #c0953c;
 }
 
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 button.btn-secondary, .btn-secondary {
     background-color: #555;
     border-color: #333;
@@ -198,10 +193,6 @@ label {
     flex-grow: 1;
     font-size: 0.8em;
     padding: 8px 5px;
-}
-
-.player-card-actions .rules-btn {
-    flex-basis: 100%;
 }
 
 
@@ -1098,15 +1089,6 @@ label {
 }
 
 /* --- Responsivité --- */
-#fullscreen-btn {
-    display: none;
-}
-
-@media (hover: none) and (pointer: coarse) {
-    #fullscreen-btn {
-        display: inline-block;
-    }
-}
 @media (max-width: 900px) {
     .unit-card-body { grid-template-columns: 1fr; }
     .upgrades-grid { grid-template-columns: 1fr; }
