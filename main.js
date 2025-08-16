@@ -1110,36 +1110,39 @@ document.addEventListener('DOMContentLoaded', () => {
             "Êtes-vous sûr ? Cette action va générer une <b>nouvelle carte galactique</b> et réinitialiser la position de TOUS les joueurs. Leurs fiches de personnage (unités, points, etc.) seront conservées.<br><br><b>Pour confirmer, entrez le mot de passe ci-dessous.</b>"
         );
         if (confirmReset) {
-            generateGalaxy();
-            const playerSystems = [];
-    
+            const sizeInput = prompt("Dimension de la galaxie (taille d'un côté)", GALAXY_SIZE);
+            const newSize = parseInt(sizeInput);
+            if (!isNaN(newSize) && newSize > 0) {
+                GALAXY_SIZE = newSize;
+                campaignData.galaxySize = newSize;
+                updateGalaxyFormatDisplay();
+            }
+
+            const newWeights = {};
+            Object.entries(planetTypeWeights).forEach(([type, weight]) => {
+                const input = parseInt(prompt(`% de ${type}`, weight));
+                newWeights[type] = isNaN(input) ? weight : input;
+            });
+            planetTypeWeights = newWeights;
+            campaignData.planetWeights = newWeights;
+
+            const playerSystemIds = new Set(campaignData.players.map(p => p.systemId));
+            const playerSystems = campaignData.systems.filter(s => playerSystemIds.has(s.id));
+            playerSystems.forEach(system => {
+                system.position = null;
+                system.connections = { up: null, down: null, left: null, right: null };
+                system.probedConnections = { up: null, down: null, left: null, right: null };
+            });
+
             campaignData.sessionLog = [];
             campaignData.players.forEach(player => {
                 player.actionLog = [];
-    
-                const newSystemId = crypto.randomUUID();
-                const DEFENSE_VALUES = [500, 1000, 1500, 2000];
-                const planetNames = ["Prima", "Secundus", "Tertius", "Quartus", "Quintus", "Sextus", "Septimus", "Octavus"];
-                const numPlanets = 5;
-                const newPlanets = Array.from({ length: numPlanets }, (_, i) => ({
-                    id: crypto.randomUUID(),
-                    type: i === 0 ? "Monde Sauvage" : getWeightedRandomPlanetType(),
-                    name: planetNames[i] || `Planète ${i + 1}`,
-                    owner: i === 0 ? player.id : "neutral",
-                    defense: i === 0 ? 0 : DEFENSE_VALUES[Math.floor(Math.random() * DEFENSE_VALUES.length)]
-                }));
-                const newSystem = {
-                    id: newSystemId, name: `Système Natal de ${player.name}`, owner: player.id, planets: newPlanets,
-                    connections: { up: null, down: null, left: null, right: null },
-                    probedConnections: { up: null, down: null, left: null, right: null },
-                    position: null
-                };
-                playerSystems.push(newSystem);
-                player.systemId = newSystemId;
-                player.discoveredSystemIds = [newSystemId]; 
+                player.discoveredSystemIds = [player.systemId];
             });
-    
+
+            generateGalaxy();
             campaignData.systems.push(...playerSystems);
+
             logGlobalAction(`<b>EXPLOSION DU WARP !</b> Une nouvelle galaxie a été générée.`, 'alert', '💥');
             saveData();
             switchView('list');

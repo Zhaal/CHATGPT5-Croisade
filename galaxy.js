@@ -3,18 +3,9 @@
 //======================================================================
 
 const getWeightedRandomPlanetType = () => {
-    const types = [
-        { name: "Monde Ruche", weight: 38 },
-        { name: "Agri-monde", weight: 25 },
-        { name: "Monde Sauvage", weight: 15 },
-        { name: "Monde Mort", weight: 10 },
-        { name: "Monde Forge", weight: 10 },
-        { name: "Monde Saint (relique)", weight: 2 }
-    ];
-
+    const types = Object.entries(planetTypeWeights).map(([name, weight]) => ({ name, weight }));
     const totalWeight = types.reduce((sum, type) => sum + type.weight, 0);
     let random = Math.random() * totalWeight;
-
     for (const type of types) {
         if (random < type.weight) {
             return type.name;
