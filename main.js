@@ -229,7 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 goalsNotes: '', units: [],
                 discoveredSystemIds: [newSystemId],
                 probedSystemIds: [],
-                actionLog: []
+                actionLog: [],
+                lastRpBonusTimestamp: null
             };
 
             if (faction === 'Adepta Sororitas') {

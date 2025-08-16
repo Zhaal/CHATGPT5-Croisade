@@ -590,7 +590,72 @@ const placePlayerSystemOnMap = async (playerId) => {
 
 
 //======================================================================
-//  GESTION DES DONNÉES (LOCALSTORAGE & JSON)
+//  LOGIQUE DE BONUS
+//======================================================================
+
+/**
+ * Vérifie et applique le bonus hebdomadaire de PR pour les Agri-mondes.
+ * @param {object} player - L'objet joueur à vérifier.
+ */
+function checkAndApplyWeeklyRpBonus(player) {
+    if (!player) return;
+
+    const now = new Date().getTime();
+    // Pour les tests, on peut réduire le délai
+    // const sevenDaysInMillis = 60 * 1000; // 1 minute pour tester
+    const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
+    const lastBonusTime = player.lastRpBonusTimestamp || 0;
+
+    if (now - lastBonusTime < sevenDaysInMillis) {
+        return; // Pas encore l'heure du bonus.
+    }
+
+    let agriWorldsCount = 0;
+    campaignData.systems.forEach(system => {
+        system.planets.forEach(planet => {
+            if (planet.owner === player.id && planet.type === 'Agri-monde') {
+                agriWorldsCount++;
+            }
+        });
+    });
+
+    // Mettre à jour le timestamp pour éviter de vérifier à chaque fois.
+    player.lastRpBonusTimestamp = now;
+
+    if (agriWorldsCount > 0) {
+        player.requisitionPoints += agriWorldsCount;
+
+        const message = `a reçu <b>${agriWorldsCount} PR</b> en bonus hebdomadaire pour ses <b>${agriWorldsCount} Agri-mondes</b>.`;
+        logAction(player.id, message, 'conquest', '🌾');
+        showNotification(`Bonus de <b>${agriWorldsCount} PR</b> reçu pour vos Agri-mondes !`, 'success');
+    }
+
+    saveData();
+}
+
+/**
+ * Calcule le bonus de limite de Véhicules/Monstres pour les Mondes Forges.
+ * @param {object} player - L'objet joueur à vérifier.
+ * @returns {number} - Le bonus en pourcentage (ex: 10, 20).
+ */
+function getForgeWorldBonus(player) {
+    if (!player) return 0;
+
+    let forgeWorldsCount = 0;
+    campaignData.systems.forEach(system => {
+        system.planets.forEach(planet => {
+            if (planet.owner === player.id && planet.type === 'Monde Forge') {
+                forgeWorldsCount++;
+            }
+        });
+    });
+
+    return forgeWorldsCount * 10;
+}
+
+
+//======================================================================
+//  GESTION DES DONNÉÉES (LOCALSTORAGE & JSON)
 //======================================================================
 
 const saveData = () => {
