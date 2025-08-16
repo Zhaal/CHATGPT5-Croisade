@@ -1025,6 +1025,10 @@ label {
 
 
 /* --- NOUVEAU : Infobulle personnalisée --- */
+#confirm-modal, #password-confirm-modal {
+    z-index: 1050;
+}
+
 #custom-tooltip {
     position: fixed;
     z-index: 1002; /* Doit être au-dessus des modales (z-index: 100) */

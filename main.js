@@ -1691,4 +1691,12 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification(notificationMessage, 'success', 7000);
         }
     });
+
+    function updateGalaxyFormatDisplay() {
+        const displayElement = document.getElementById('galaxy-format-display');
+        if (displayElement) {
+            displayElement.textContent = `Format de la galaxie: ${GALAXY_SIZE}x${GALAXY_SIZE}`;
+        }
+    }
+    updateGalaxyFormatDisplay();
 });
