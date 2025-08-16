@@ -54,7 +54,10 @@ const renderPlayerList = () => {
             <p>
                 ${player.faction || 'Faction non spécifiée'}<br>
                 Statut: ${onMapStatus}<br>
-                Parties: ${totalGames} (PNJ: ${npcGames})
+                Parties: ${totalGames} (PNJ: ${npcGames})<br>
+                Sondes gratuites: ${player.freeProbes || 0}<br>
+                Limite de Ravitaillement: ${player.supplyLimit || 0} PL<br>
+                RP disponibles: ${player.requisitionPoints || 0}
             </p>
             <div class="player-card-actions">
                 <button class="btn-secondary edit-player-btn" data-index="${index}">Modifier</button>
