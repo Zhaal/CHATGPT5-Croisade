@@ -247,6 +247,7 @@ function showWarpSettingsModal(currentSize, currentWeights) {
         const weightsContainer = document.getElementById('warp-planet-weights');
         const okBtn = document.getElementById('warp-settings-ok-btn');
         const cancelBtn = document.getElementById('warp-settings-cancel-btn');
+        const totalDisplay = document.getElementById('warp-planet-total-value');
 
         sizeInput.value = currentSize;
         weightsContainer.innerHTML = '';
@@ -256,6 +257,21 @@ function showWarpSettingsModal(currentSize, currentWeights) {
             div.innerHTML = `<label>${type}</label><input type="number" data-type="${type}" value="${weight}" min="0" max="100">`;
             weightsContainer.appendChild(div);
         });
+
+        const updateTotal = () => {
+            let total = 0;
+            weightsContainer.querySelectorAll('input').forEach(input => {
+                total += parseInt(input.value) || 0;
+            });
+            totalDisplay.textContent = total;
+            okBtn.disabled = total !== 100;
+        };
+
+        weightsContainer.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', updateTotal);
+        });
+
+        updateTotal();
 
         openModal(modal);
 
