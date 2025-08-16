@@ -409,6 +409,7 @@
             <h3 id="world-modal-title" class="crusade-card-title">Système Planétaire</h3>
             <button id="show-history-btn" class="btn-secondary" style="margin-bottom: 15px;">Historique Complet</button>
             <button id="show-map-btn" class="btn-secondary" style="margin-bottom: 15px;">Voir la Carte Galactique</button>
+            <button id="show-bonus-btn" class="btn-secondary" style="margin-bottom: 15px;">État des Bonus Planétaires</button>
             <button id="edit-crusade-order-btn" class="btn-primary" style="margin-bottom: 15px;">Éditer l'Ordre de Croisade</button>
             <div id="system-container">
                 <button class="explore-arrow" id="explore-up" title="Explorer vers le Nord">↑</button>
@@ -758,5 +759,15 @@
     <script src="render.js"></script>
     <script src="upgrades.js"></script>
     <script src="main.js"></script>
+
+    <div id="planet-bonus-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="planet-bonus-modal-title">État des Bonus Planétaires</h3>
+            <div id="planet-bonus-content" style="padding-top: 15px;">
+                <!-- Le contenu sera généré par JavaScript -->
+            </div>
+        </div>
+    </div>
 </body>
 </html>
