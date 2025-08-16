@@ -945,3 +945,89 @@ function renderCampaignRulesTab(player = null, containerId = 'rules-content-pane
 
     infoPanel.innerHTML = tableHTML;
 }
+
+function renderPlanetBonusModal() {
+    const contentDiv = document.getElementById('planet-bonus-content');
+    const player = campaignData.players.find(p => p.id === mapViewingPlayerId);
+
+    if (!player) {
+        contentDiv.innerHTML = '<p>Aucun joueur sélectionné.</p>';
+        return;
+    }
+
+    contentDiv.innerHTML = '';
+
+    // --- Section Monde Forge ---
+    const forgeWorldBonus = getForgeWorldBonus(player);
+    let forgeWorldsCount = 0;
+    campaignData.systems.forEach(system => {
+        system.planets.forEach(planet => {
+            if (planet.owner === player.id && planet.type === 'Monde Forge') {
+                forgeWorldsCount++;
+            }
+        });
+    });
+
+    const forgeSection = document.createElement('div');
+    forgeSection.className = 'bonus-section';
+    forgeSection.innerHTML = `
+        <h4><span class="legend-color" data-type="Monde Forge"></span> Mondes Forges</h4>
+        <p>Nombre de mondes : <strong>${forgeWorldsCount}</strong></p>
+        <p>Bonus à la limite de Véhicules/Monstres : <strong style="color: var(--friendly-color);">+${forgeWorldBonus}%</strong></p>
+    `;
+    contentDiv.appendChild(forgeSection);
+
+    contentDiv.appendChild(document.createElement('hr'));
+
+    // --- Section Agri-Monde ---
+    let agriWorldsCount = 0;
+    campaignData.systems.forEach(system => {
+        system.planets.forEach(planet => {
+            if (planet.owner === player.id && planet.type === 'Agri-monde') {
+                agriWorldsCount++;
+            }
+        });
+    });
+
+    const agriSection = document.createElement('div');
+    agriSection.className = 'bonus-section';
+    agriSection.innerHTML = `
+        <h4><span class="legend-color" data-type="Agri-monde"></span> Agri-Mondes</h4>
+        <p>Nombre de mondes : <strong>${agriWorldsCount}</strong></p>
+        <p>Bonus de Points de Réquisition : <strong style="color: var(--friendly-color);">${agriWorldsCount} PR / semaine</strong></p>
+        <p>Prochain bonus dans : <strong id="agri-world-timer">Calcul...</strong></p>
+    `;
+    contentDiv.appendChild(agriSection);
+
+    // --- Logique du Timer ---
+    const timerElement = document.getElementById('agri-world-timer');
+    if (bonusModalTimer) {
+        clearInterval(bonusModalTimer);
+    }
+
+    const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
+    const lastBonusTime = player.lastRpBonusTimestamp || new Date().getTime();
+    const nextBonusTime = lastBonusTime + sevenDaysInMillis;
+
+    function updateTimer() {
+        const now = new Date().getTime();
+        const remainingTime = nextBonusTime - now;
+
+        if (remainingTime <= 0) {
+            timerElement.textContent = "Bonus disponible !";
+            timerElement.style.color = 'var(--friendly-color)';
+            clearInterval(bonusModalTimer);
+            return;
+        }
+
+        const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+        timerElement.textContent = `${days}j ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    updateTimer();
+    bonusModalTimer = setInterval(updateTimer, 1000);
+}

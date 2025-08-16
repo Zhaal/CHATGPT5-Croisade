@@ -1211,3 +1211,36 @@ label {
     font-size: 1.2em;
     line-height: 1.2;
 }
+
+/* --- Styles for Planet Bonus Modal --- */
+.bonus-section {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+}
+
+.bonus-section:not(:last-child) {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.bonus-section h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 10px 0;
+    color: var(--primary-color);
+}
+
+.bonus-section p {
+    margin: 5px 0 5px 28px; /* Indent to align with text after icon */
+    color: var(--text-muted-color);
+}
+
+.bonus-section p strong {
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+#agri-world-timer {
+    color: var(--warning-color);
+    font-weight: bold;
+}

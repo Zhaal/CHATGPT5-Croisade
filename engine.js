@@ -38,6 +38,8 @@ let wasDragged = false;
 let startX, scrollLeftStart;
 let startY, scrollTopStart;
 
+let bonusModalTimer = null;
+
 const STEP_DISTANCE = 250;
 const GALAXY_SIZE = 9;
 

@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const npcCombatModal = document.getElementById('npc-combat-modal');
     const pvpCombatModal = document.getElementById('pvp-combat-modal');
     const rulesModal = document.getElementById('rules-modal');
+    const planetBonusModal = document.getElementById('planet-bonus-modal');
     
     const actionLogContainer = document.getElementById('action-log-container');
     const actionLogHeader = document.getElementById('action-log-header');
@@ -115,6 +116,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const previouslySelected = document.querySelector('.system-node.selected-for-action');
             if(previouslySelected) previouslySelected.classList.remove('selected-for-action');
             selectedSystemOnMapId = null; 
+        }
+        if (modal === planetBonusModal && bonusModalTimer) {
+            clearInterval(bonusModalTimer);
+            bonusModalTimer = null;
         }
     }
 
@@ -752,6 +757,9 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(renderGalacticMap, 50);
         } else if (e.target.id === 'show-history-btn') {
             openFullHistoryModal();
+        } else if (e.target.id === 'show-bonus-btn') {
+            renderPlanetBonusModal();
+            openModal(planetBonusModal);
         } else if (e.target.id === 'edit-crusade-order-btn') {
             const system = campaignData.systems.find(s => s.id === currentlyViewedSystemId);
             if (system && system.owner !== 'npc') {
