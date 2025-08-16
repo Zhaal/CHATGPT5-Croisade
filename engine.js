@@ -30,6 +30,7 @@ let currentlyViewedSystemId = null;
 let mapViewingPlayerId = null;
 let selectedSystemOnMapId = null; // NEW: Tracks selected system for map actions
 let currentMapScale = 1;
+let returnToPlayerDetailAfterWorldModal = false;
 
 let isAdminMode = false;
 
