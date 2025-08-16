@@ -27,6 +27,26 @@ const switchView = (view) => {
     }
 };
 
+// Calcule le nombre total de planètes contrôlées par un joueur
+// ainsi que le nombre de systèmes contenant au moins une de ses planètes.
+const getPlayerTerritoryStats = (playerId) => {
+    let planetCount = 0;
+    let systemCount = 0;
+    (campaignData.systems || []).forEach(system => {
+        let ownsPlanetHere = false;
+        system.planets.forEach(planet => {
+            if (planet.owner === playerId) {
+                planetCount++;
+                ownsPlanetHere = true;
+            }
+        });
+        if (ownsPlanetHere) {
+            systemCount++;
+        }
+    });
+    return { planetCount, systemCount };
+};
+
 const renderPlayerList = () => {
     const playerListDiv = document.getElementById('player-list');
     playerListDiv.innerHTML = '';
@@ -48,9 +68,10 @@ const renderPlayerList = () => {
 
         const totalGames = (player.battles.wins || 0) + (player.battles.losses || 0);
         const npcGames = player.battles.npcGames || 0;
+        const { planetCount, systemCount } = getPlayerTerritoryStats(player.id);
 
         card.innerHTML = `
-            <h3 class="player-name-link" data-index="${index}">${player.name}</h3>
+            <h3 class="player-name-link" data-index="${index}">${player.name} (${planetCount} planètes / ${systemCount} systèmes)</h3>
             <p>
                 ${player.faction || 'Faction non spécifiée'}<br>
                 Statut: ${onMapStatus}<br>
