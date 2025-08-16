@@ -71,7 +71,7 @@ const renderPlayerList = () => {
         const { planetCount, systemCount } = getPlayerTerritoryStats(player.id);
 
         card.innerHTML = `
-            <h3 class="player-name-link" data-index="${index}">${player.name} (${planetCount} planètes / ${systemCount} systèmes)</h3>
+            <h3 class="player-name-link" data-index="${index}">${player.name} <span class="player-territory-stats">(${planetCount} planètes / ${systemCount} systèmes)</span></h3>
             <p>
                 ${player.faction || 'Faction non spécifiée'}<br>
                 Statut: ${onMapStatus}<br>

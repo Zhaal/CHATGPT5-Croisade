@@ -203,6 +203,11 @@ label {
     cursor: pointer;
 }
 
+.player-card h3 .player-territory-stats {
+    font-size: 0.8em;
+    font-weight: normal;
+}
+
 .player-card p {
     margin: 0 0 10px 0;
     color: var(--text-muted-color);
