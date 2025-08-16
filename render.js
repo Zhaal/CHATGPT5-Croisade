@@ -980,54 +980,101 @@ function renderPlanetBonusModal() {
     contentDiv.appendChild(document.createElement('hr'));
 
     // --- Section Agri-Monde ---
-    let agriWorldsCount = 0;
+    const playerAgriWorlds = [];
     campaignData.systems.forEach(system => {
         system.planets.forEach(planet => {
             if (planet.owner === player.id && planet.type === 'Agri-monde') {
-                agriWorldsCount++;
+                playerAgriWorlds.push(planet);
             }
         });
     });
 
     const agriSection = document.createElement('div');
     agriSection.className = 'bonus-section';
-    agriSection.innerHTML = `
-        <h4><span class="legend-color" data-type="Agri-monde"></span> Agri-Mondes</h4>
-        <p>Nombre de mondes : <strong>${agriWorldsCount}</strong></p>
-        <p>Bonus de Points de Réquisition : <strong style="color: var(--friendly-color);">${agriWorldsCount} PR / semaine</strong></p>
-        <p>Prochain bonus dans : <strong id="agri-world-timer">Calcul...</strong></p>
-    `;
+    agriSection.innerHTML = `<h4><span class="legend-color" data-type="Agri-monde"></span> Agri-Mondes (${playerAgriWorlds.length})</h4>`;
+
+    if (playerAgriWorlds.length > 0) {
+        playerAgriWorlds.forEach(planet => {
+            const timerId = `agri-timer-${planet.id}`;
+            let timerHtml = 'Le timer de 7 jours démarrera à la capture.';
+            if (planet.agriWorldCaptureTimestamp) {
+                timerHtml = `Temps restant : <strong id="${timerId}">Calcul...</strong>`;
+            }
+            agriSection.innerHTML += `<p><strong>${planet.name}:</strong> ${timerHtml}</p>`;
+        });
+         agriSection.innerHTML += `<p style="margin-top:15px; font-size: 0.9em; color: var(--text-muted-color);"><i>Note: Le bonus de +1 PR par semaine pour chaque Agri-monde est un bonus récurrent qui se déclenche automatiquement.</i></p>`;
+    } else {
+        agriSection.innerHTML += '<p>Vous ne contrôlez aucun Agri-monde.</p>';
+    }
     contentDiv.appendChild(agriSection);
 
+    contentDiv.appendChild(document.createElement('hr'));
+
+    // --- Section Monde Saint ---
+    const playerHolyWorlds = [];
+    campaignData.systems.forEach(system => {
+        system.planets.forEach(planet => {
+            if (planet.owner === player.id && planet.type === 'Monde Saint (relique)') {
+                playerHolyWorlds.push(planet);
+            }
+        });
+    });
+
+    const holySection = document.createElement('div');
+    holySection.className = 'bonus-section';
+    holySection.innerHTML = `<h4><span class="legend-color" data-type="Monde Saint (relique)"></span> Mondes Saints (${playerHolyWorlds.length})</h4>`;
+
+    if (playerHolyWorlds.length > 0) {
+        playerHolyWorlds.forEach(planet => {
+            let statusHtml;
+            if (planet.relicAssignedToUnitId) {
+                const unit = player.units.find(u => u.id === planet.relicAssignedToUnitId);
+                statusHtml = `Relique assignée à : <strong style="color: var(--friendly-color);">${unit ? unit.name : 'Unité inconnue'}</strong>`;
+            } else {
+                statusHtml = `<button class="btn-secondary assign-relic-btn" data-planet-id="${planet.id}">Attribuer la Relique</button>`;
+            }
+            holySection.innerHTML += `<p><strong>${planet.name}:</strong> ${statusHtml}</p>`;
+        });
+    } else {
+        holySection.innerHTML += '<p>Vous ne contrôlez aucun Monde Saint.</p>';
+    }
+    contentDiv.appendChild(holySection);
+
+
     // --- Logique du Timer ---
-    const timerElement = document.getElementById('agri-world-timer');
     if (bonusModalTimer) {
         clearInterval(bonusModalTimer);
     }
 
     const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
-    const lastBonusTime = player.lastRpBonusTimestamp || new Date().getTime();
-    const nextBonusTime = lastBonusTime + sevenDaysInMillis;
 
-    function updateTimer() {
-        const now = new Date().getTime();
-        const remainingTime = nextBonusTime - now;
+    function updateTimers() {
+        playerAgriWorlds.forEach(planet => {
+            if (planet.agriWorldCaptureTimestamp) {
+                const timerElement = document.getElementById(`agri-timer-${planet.id}`);
+                if (!timerElement) return;
 
-        if (remainingTime <= 0) {
-            timerElement.textContent = "Bonus disponible !";
-            timerElement.style.color = 'var(--friendly-color)';
-            clearInterval(bonusModalTimer);
-            return;
-        }
+                const nextBonusTime = planet.agriWorldCaptureTimestamp + sevenDaysInMillis;
+                const now = new Date().getTime();
+                const remainingTime = nextBonusTime - now;
 
-        const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
-
-        timerElement.textContent = `${days}j ${hours}h ${minutes}m ${seconds}s`;
+                if (remainingTime <= 0) {
+                    timerElement.textContent = "Timer de capture terminé.";
+                    timerElement.style.color = 'var(--text-muted-color)';
+                } else {
+                    const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+                    timerElement.textContent = `${days}j ${hours}h ${minutes}m ${seconds}s`;
+                    timerElement.style.color = 'var(--friendly-color)';
+                }
+            }
+        });
     }
 
-    updateTimer();
-    bonusModalTimer = setInterval(updateTimer, 1000);
+    if (playerAgriWorlds.some(p => p.agriWorldCaptureTimestamp)) {
+        updateTimers();
+        bonusModalTimer = setInterval(updateTimers, 1000);
+    }
 }
