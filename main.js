@@ -70,6 +70,58 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+    planetBonusModal.addEventListener('click', async (e) => {
+        const target = e.target;
+        if (target.classList.contains('assign-relic-btn')) {
+            const planetId = target.dataset.planetId;
+            const player = campaignData.players.find(p => p.id === mapViewingPlayerId);
+            if (!player) return;
+
+            let planetToUpdate;
+            for (const system of campaignData.systems) {
+                const foundPlanet = system.planets.find(p => p.id === planetId);
+                if (foundPlanet) {
+                    planetToUpdate = foundPlanet;
+                    break;
+                }
+            }
+
+            if (!planetToUpdate) {
+                showNotification("Erreur : Planète non trouvée.", 'error');
+                return;
+            }
+
+            const characterUnits = player.units.filter(u => u.role === 'Personnage' || u.role === 'Hero Epique');
+            if (characterUnits.length === 0) {
+                showNotification("Aucun personnage éligible dans votre Ordre de Bataille.", 'warning');
+                return;
+            }
+
+            const eligibleCharacters = characterUnits.filter(u => !u.relic);
+            if (eligibleCharacters.length === 0) {
+                showNotification("Tous vos personnages ont déjà une relique.", 'warning');
+                return;
+            }
+
+            const selectedUnitId = await showUnitChoiceModal(
+                `Choisir un personnage pour la relique de ${planetToUpdate.name}`,
+                'Sélectionnez une unité (Personnage ou Hero Epique) pour lui attribuer cette relique.',
+                eligibleCharacters
+            );
+
+            if (selectedUnitId) {
+                const selectedUnit = player.units.find(u => u.id === selectedUnitId);
+                if (selectedUnit) {
+                    selectedUnit.relic = (selectedUnit.relic ? selectedUnit.relic + '\n' : '') + `Relique de ${planetToUpdate.name}`;
+                    planetToUpdate.relicAssignedToUnitId = selectedUnit.id;
+                    logAction(player.id, `La relique de <b>${planetToUpdate.name}</b> a été assignée à <b>${selectedUnit.name}</b>.`, 'info', '✨');
+                    saveData();
+                    renderPlanetBonusModal(); // Refresh the modal to show the change
+                }
+            }
+        }
+    });
+
         document.addEventListener('fullscreenchange', () => {
             fullscreenBtn.textContent = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran';
         });
@@ -212,7 +264,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: i === 0 ? "Monde Sauvage" : getWeightedRandomPlanetType(),
                 name: planetNames[i] || `Planète ${i + 1}`,
                 owner: i === 0 ? newPlayerId : "neutral",
-                defense: i === 0 ? 0 : DEFENSE_VALUES[Math.floor(Math.random() * DEFENSE_VALUES.length)]
+                defense: i === 0 ? 0 : DEFENSE_VALUES[Math.floor(Math.random() * DEFENSE_VALUES.length)],
+                relicAssignedToUnitId: null,
+                agriWorldCaptureTimestamp: null
             }));
 
             const newSystem = {
@@ -1255,6 +1309,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     attacker.requisitionPoints++;
                     planet.owner = attacker.id;
                     planet.defense = 0;
+                    if (planet.type === 'Agri-monde') {
+                        planet.agriWorldCaptureTimestamp = new Date().getTime();
+                    }
                     logAction(attacker.id, `<b>Victoire !</b> A conquis la planète PNJ <b>${planet.name}</b> (défendue par ${defender.name}). +1 PR.`, 'conquest', '🏆');
                 } else {
                     attacker.battles.losses = (attacker.battles.losses || 0) + 1;
@@ -1394,6 +1451,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const oldOwnerName = defender.name;
                     planet.owner = attacker.id;
+                    if (planet.type === 'Agri-monde') {
+                        planet.agriWorldCaptureTimestamp = new Date().getTime();
+                    }
                     logAction(attacker.id, `<b>Victoire !</b> Vous avez conquis la planète <b>${planet.name}</b> de <b>${oldOwnerName}</b>. +1 PR.`, 'conquest', '🏆');
                     logAction(defender.id, `<b>Défaite.</b> Vous avez perdu la planète <b>${planet.name}</b> face à <b>${attacker.name}</b>. +1 PR.`, 'info', '⚔️');
                     showNotification(`Victoire de ${attacker.name} ! La planète ${planet.name} est conquise.`, "success");
