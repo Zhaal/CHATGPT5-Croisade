@@ -69,9 +69,11 @@ const renderPlayerList = () => {
         const totalGames = (player.battles.wins || 0) + (player.battles.losses || 0);
         const npcGames = player.battles.npcGames || 0;
         const { planetCount, systemCount } = getPlayerTerritoryStats(player.id);
+        const planetLabel = planetCount > 1 ? 'planètes' : 'planète';
+        const systemLabel = systemCount > 1 ? 'systèmes' : 'système';
 
         card.innerHTML = `
-            <h3 class="player-name-link" data-index="${index}">${player.name} <span class="player-territory-stats">(${planetCount} planètes / ${systemCount} systèmes)</span></h3>
+            <h3 class="player-name-link" data-index="${index}">${player.name} <span class="player-territory-stats">(${planetCount} ${planetLabel} / ${systemCount} ${systemLabel})</span></h3>
             <p>
                 ${player.faction || 'Faction non spécifiée'}<br>
                 Statut: ${onMapStatus}<br>
