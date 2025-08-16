@@ -17,13 +17,13 @@ const switchView = (view) => {
         playerDetailView.classList.add('hidden');
         activePlayerIndex = -1;
         backToSystemBtn.classList.add('hidden');
-        
+
         // CORRECTION : Réinitialise l'ID du joueur consulté et rafraîchit l'historique
         mapViewingPlayerId = null;
         renderActionLog();
-        
+
         // AJOUT : Rafraîchit la liste des joueurs à chaque retour au menu principal.
-        renderPlayerList(); 
+        renderPlayerList();
     }
 };
 
@@ -45,7 +45,7 @@ const renderPlayerList = () => {
         const onMapStatus = (playerSystem && playerSystem.position) ?
             '<span style="color: var(--friendly-color);">Connecté</span>' :
             '<span style="color: var(--warning-color);">Non connecté</span>';
-        
+
         const totalGames = (player.battles.wins || 0) + (player.battles.losses || 0);
         const npcGames = player.battles.npcGames || 0;
 
@@ -71,6 +71,11 @@ const renderPlayerDetail = () => {
     if (activePlayerIndex === -1) return;
     const player = campaignData.players[activePlayerIndex];
 
+    // Appliquer le bonus hebdomadaire pour les agri-mondes
+    if (typeof checkAndApplyWeeklyRpBonus === 'function') {
+        checkAndApplyWeeklyRpBonus(player);
+    }
+
     // NOUVELLE LOGIQUE : Calcul et mise à jour du coût des optimisations de détachement
     const totalUpgradeCost = calculateDetachmentUpgradeCost(player);
     player.upgradeSupplyCost = totalUpgradeCost;
@@ -83,7 +88,7 @@ const renderPlayerDetail = () => {
     // MODIFIÉ : Affichage des sondes gratuites
     document.getElementById('free-probes-points').textContent = player.freeProbes || 0;
     document.getElementById('sombreroche-points').textContent = player.sombrerochePoints || 0;
-    
+
     // Affichage conditionnel de la boîte de Biomasse (Tyranids)
     const biomassBox = document.getElementById('biomass-box');
     if (player.faction === 'Tyranids') {
@@ -127,7 +132,27 @@ const renderPlayerDetail = () => {
     }
 
     document.getElementById('supply-limit').value = player.supplyLimit;
-    
+
+    // Affichage de la limite de Véhicules/Monstres
+    if (typeof getForgeWorldBonus === 'function') {
+        const forgeWorldBonus = getForgeWorldBonus(player);
+        const baseLimit = 30;
+        const totalLimit = baseLimit + forgeWorldBonus;
+        const limitDisplay = document.getElementById('vehicle-monster-limit-display');
+        const limitBox = document.getElementById('vehicle-monster-limit-box');
+
+        if (limitDisplay && limitBox) {
+            if (forgeWorldBonus > 0) {
+                limitDisplay.textContent = `${totalLimit}% (${baseLimit}% + ${forgeWorldBonus}%)`;
+            } else {
+                limitDisplay.textContent = `${baseLimit}%`;
+            }
+            limitBox.classList.remove('hidden');
+        } else if (limitBox) {
+            limitBox.classList.add('hidden');
+        }
+    }
+
     // MODIFICATION : Mise à jour du textContent au lieu de la value
     document.getElementById('upgrade-supply-cost').textContent = player.upgradeSupplyCost || 0;
 
@@ -161,13 +186,13 @@ const renderOrderOfBattle = () => {
     const player = campaignData.players[activePlayerIndex];
     const tbody = document.getElementById('units-tbody');
     tbody.innerHTML = '';
-    
+
     (player.units || []).forEach((unit, index) => {
         const rank = getRankFromXp(unit.xp);
         const row = document.createElement('tr');
 
         const isDoubled = unit.equipment && unit.equipment.includes("- Effectif doublé.");
-        const displayName = isDoubled 
+        const displayName = isDoubled
             ? `${unit.name} <span class="doubled-indicator">x2</span>`
             : unit.name;
 
@@ -229,7 +254,7 @@ const renderPlanetarySystem = (systemId) => {
 
         const planetDiv = document.createElement('div');
         planetDiv.className = 'planet';
-        
+
         // --- NOUVELLE LOGIQUE POUR LE VISUEL DE CIBLE TYRANIDE ---
         let isTyranidTarget = false;
         for (const p of campaignData.players) {
@@ -242,30 +267,30 @@ const renderPlanetarySystem = (systemId) => {
             planetDiv.classList.add('tyranid-target');
         }
         // --- FIN DE LA NOUVELLE LOGIQUE ---
-        
-        const isDevoured = campaignData.players.some(p => 
-            p.faction === 'Tyranids' && 
-            p.tyranidData.devouredPlanetIds && 
+
+        const isDevoured = campaignData.players.some(p =>
+            p.faction === 'Tyranids' &&
+            p.tyranidData.devouredPlanetIds &&
             p.tyranidData.devouredPlanetIds.includes(planet.id)
         );
 
         if (isDevoured) {
             planetDiv.classList.add('devoured-planet');
         }
-        
+
         planetDiv.dataset.type = planet.type;
         planetDiv.dataset.owner = planet.owner;
         planetDiv.dataset.systemId = systemId;
         planetDiv.dataset.planetIndex = index;
-        
+
         const viewingPlayer = campaignData.players.find(p => p.id === mapViewingPlayerId);
-        
+
         if (viewingPlayer && viewingPlayer.faction === 'Death Guard' && viewingPlayer.deathGuardData && viewingPlayer.deathGuardData.corruptedPlanetIds.includes(planet.id)) {
             planetDiv.classList.add('corrupted-planet');
         } else {
             planetDiv.classList.remove('corrupted-planet');
         }
-        
+
         if (planet.owner === mapViewingPlayerId) {
             planetDiv.classList.add('friendly-planet');
         }
@@ -350,7 +375,7 @@ const renderPlanetarySystem = (systemId) => {
             joinMapBtn.style.width = '100%';
             joinMapBtn.style.backgroundColor = 'var(--friendly-color)';
             joinMapBtn.style.borderColor = '#2b8a5a';
-            
+
             joinMapBtn.addEventListener('click', () => {
                 // Cette fonction est définie dans engine.js et gère toute la logique
                 placePlayerSystemOnMap(viewingPlayer.id);
@@ -393,7 +418,7 @@ const renderGalacticMap = () => {
         viewingPlayer = campaignData.players[0];
         playerViewSelect.value = mapViewingPlayerId;
     }
-    
+
     const mapFreeProbesEl = document.getElementById('map-view-free-probes');
     if (mapFreeProbesEl && viewingPlayer) {
         mapFreeProbesEl.textContent = viewingPlayer.freeProbes || 0;
@@ -468,24 +493,24 @@ const renderGalacticMap = () => {
         Object.values(system.probedConnections).forEach(probedInfo => {
             if (probedInfo && probedInfo.id) {
                 const connectedId = probedInfo.id;
-                
+
                 if (visibleSystemIds.has(connectedId)) {
                     const key = [system.id, connectedId].sort().join('-');
                     if (drawnProbeLines.has(key)) return;
 
                     const connectedSystem = campaignData.systems.find(s => s.id === connectedId);
                     const pos2 = connectedSystem?.position;
-                    
+
                     const isFullyConnected = Object.values(system.connections).includes(connectedId);
 
                     if (pos2 && !isFullyConnected) {
                         const line = document.createElement('div');
                         line.className = 'probe-connection-line'; // Classe par défaut
-                        
+
                         if (probedInfo.status === 'player_contact') {
                             line.classList.add('probe-connection-line--hostile');
                         }
-                        
+
                         const deltaX = pos2.x - pos1.x;
                         const deltaY = pos2.y - pos1.y;
                         const distance = Math.hypot(deltaX, deltaY);
@@ -513,14 +538,14 @@ const renderGalacticMap = () => {
         if (system1 && system2 && system1.position && system2.position) {
             const pos1 = system1.position;
             const pos2 = system2.position;
-            
+
             // MODIFIED: Draw a curved SVG path instead of a div
             const midX = (pos1.x + pos2.x) / 2;
             const midY = (pos1.y + pos2.y) / 2;
             const dx = pos2.x - pos1.x;
             const dy = pos2.y - pos1.y;
             const dist = Math.hypot(dx, dy);
-            
+
             // Offset the control point perpendicularly to the line for the curve
             const curveAmount = 150; // A fixed pixel value for the curve height
             const controlX = midX - curveAmount * (dy / dist);
@@ -532,7 +557,7 @@ const renderGalacticMap = () => {
             path.setAttribute('stroke-width', '3');
             path.setAttribute('stroke-dasharray', '8, 6'); // Dashed line for visual effect
             path.setAttribute('fill', 'none');
-            
+
             svgOverlay.appendChild(path);
             drawnGatewayLinks.add(key);
         }
@@ -548,14 +573,14 @@ const renderGalacticMap = () => {
         const node = document.createElement('div');
         node.className = 'system-node';
         node.dataset.systemId = system.id;
-        
+
         const isProbedOnly = viewingPlayer.probedSystemIds &&
                              viewingPlayer.probedSystemIds.includes(system.id) &&
                              !viewingPlayer.discoveredSystemIds.includes(system.id);
 
         if (isProbedOnly) {
             node.classList.add('probed-only');
-        
+
             // CORRECTION: Utilise les données de sonde stockées au lieu des données en temps réel.
             let wasHostileProbe = false;
             for (const sourceSystem of campaignData.systems) {
@@ -570,11 +595,11 @@ const renderGalacticMap = () => {
                 }
                 if (wasHostileProbe) break;
             }
-        
+
             if (wasHostileProbe) {
                 node.classList.add('hostile-probe');
             }
-            
+
             const planetCount = system.planets.length;
             const planetCountText = `${planetCount} planète${planetCount > 1 ? 's' : ''}`;
             node.innerHTML = `<span>Système Inconnu</span><small>Contact Sonde<br>${planetCountText}</small>`;
@@ -622,7 +647,7 @@ const renderGalacticMap = () => {
         mapContainer.scrollLeft = galaxyCenterX * currentMapScale - mapContainer.clientWidth / 2;
         mapContainer.scrollTop = galaxyCenterY * currentMapScale - mapContainer.clientHeight / 2;
     }, 0);
-    
+
     // Final call to initialize/hide the probe controls
     updateMapProbeControls();
 };
@@ -637,7 +662,7 @@ const updateMapProbeControls = () => {
 
     const system = campaignData.systems.find(s => s.id === selectedSystemOnMapId);
     const player = campaignData.players.find(p => p.id === mapViewingPlayerId);
-    
+
     const canProbeFromSystem = system && system.position && player;
 
     if (!canProbeFromSystem) {
@@ -703,8 +728,8 @@ const updateExplorationArrows = (currentSystem) => {
         const arrow = document.getElementById(`explore-${dir}`);
         arrow.classList.toggle('hidden', isOffMap);
         if (isOffMap) return;
-        
-        arrow.title = ''; 
+
+        arrow.title = '';
 
         const connectedSystemId = currentSystem.connections[dir];
         const probedInfo = currentSystem.probedConnections ? currentSystem.probedConnections[dir] : null;
@@ -774,7 +799,7 @@ const updateExplorationArrows = (currentSystem) => {
         }
         arrow.innerHTML = label;
     });
-    
+
     // NOUVEL AJOUT : Met à jour le compteur de sondes gratuites en temps réel.
     const freeProbesEl = document.getElementById('system-view-free-probes');
     if (freeProbesEl && viewingPlayer) {
@@ -859,12 +884,12 @@ function renderCampaignRulesTab(player = null, containerId = 'rules-content-pane
         infoPanel.innerHTML = `<p>Aucune donnée de règle de campagne à afficher.</p>`;
         return;
     }
-    
+
     // Pour l'instant, on se concentre sur la Death Guard, mais la structure est prête pour d'autres factions.
     let factionKey;
     if (player.faction === 'Death Guard') {
         factionKey = 'deathGuard';
-    } 
+    }
     // Ajoutez d'autres 'else if' ici pour d'autres factions à l'avenir
     // else if (player.faction === 'Tyranids') {
     //     factionKey = 'tyranids';
