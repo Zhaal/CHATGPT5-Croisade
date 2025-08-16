@@ -41,7 +41,7 @@ let startY, scrollTopStart;
 let bonusModalTimer = null;
 
 const STEP_DISTANCE = 250;
-const GALAXY_SIZE = 9;
+const GALAXY_SIZE = (typeof window.galaxyConfig !== 'undefined' && window.galaxyConfig.size) ? window.galaxyConfig.size : 9;
 
 //======================================================================
 //  SYSTÈME DE NOTIFICATION, CONFIRMATION, LOG & MODALES

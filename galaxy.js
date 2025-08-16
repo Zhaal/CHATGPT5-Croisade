@@ -3,7 +3,7 @@
 //======================================================================
 
 const getWeightedRandomPlanetType = () => {
-    const types = [
+    const defaultTypes = [
         { name: "Monde Ruche", weight: 38 },
         { name: "Agri-monde", weight: 25 },
         { name: "Monde Sauvage", weight: 15 },
@@ -11,6 +11,8 @@ const getWeightedRandomPlanetType = () => {
         { name: "Monde Forge", weight: 10 },
         { name: "Monde Saint (relique)", weight: 2 }
     ];
+
+    const types = (typeof window.galaxyConfig !== 'undefined' && window.galaxyConfig.planetTypes) ? window.galaxyConfig.planetTypes : defaultTypes;
 
     const totalWeight = types.reduce((sum, type) => sum + type.weight, 0);
     let random = Math.random() * totalWeight;
@@ -79,7 +81,7 @@ const generateGalaxy = () => {
             usedNamesInGeneration.add(system.name);
         }
     }
-    
+
     campaignData.systems = newSystems;
     campaignData.isGalaxyGenerated = true;
     showNotification(`Galaxie de <b>${newSystems.length}</b> systèmes PNJ créée.`, 'success');
@@ -131,7 +133,7 @@ const hasSupplyLine = (startSystemId, playerId) => {
 
         for (const neighborId of allNeighborIds) {
             if (visited.has(neighborId)) continue;
-            
+
             const neighborSystem = campaignData.systems.find(s => s.id === neighborId);
             if (!neighborSystem) continue;
 
@@ -139,7 +141,7 @@ const hasSupplyLine = (startSystemId, playerId) => {
             // Un maillon de la chaîne de ravitaillement doit être contrôlé ET non contesté.
             const isNeighborControlled = neighborSystem.planets.some(p => p.owner === playerId);
             const hasEnemyInNeighbor = neighborSystem.planets.some(p => p.owner !== 'neutral' && p.owner !== playerId);
-            
+
             // On peut traverser le système natal même s'il est contesté (cas d'une invasion).
             if (neighborId !== homeSystemId && (!isNeighborControlled || hasEnemyInNeighbor)) {
                 continue; // Ce maillon est invalide, on ne peut pas passer par là.
@@ -254,7 +256,7 @@ const handleExploration = async (direction) => {
         showNotification("<b>Blocus ennemi !</b> Vous ne pouvez pas explorer depuis ce système tant qu'une planète ennemie est présente.", 'error');
         return;
     }
-    
+
     // Nouvelle vérification de la ligne de ravitaillement
     if (!hasSupplyLine(currentSystem.id, viewingPlayer.id)) {
         showNotification("<b>Ligne de ravitaillement rompue !</b> Impossible d'explorer depuis ce système car il n'est pas connecté à votre bastion par une chaîne de systèmes contrôlés.", 'error', 8000);
@@ -286,18 +288,18 @@ const handleExploration = async (direction) => {
         const hours = Math.floor((elapsedMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((elapsedMs % (1000 * 60 * 60)) / (1000 * 60));
         const timerText = `Dernière sonde envoyée il y a : ${days} jour(s), ${hours}h, ${minutes}min.`;
-    
+
         const title = probedInfo.status === 'player_contact' ? "Établir un Contact Hostile" : "Confirmer la Connexion";
-        const mainText = probedInfo.status === 'player_contact' 
+        const mainText = probedInfo.status === 'player_contact'
             ? `Vos sondes confirment la présence d'un autre joueur. Voulez-vous établir une connexion permanente ?<br><br><b>Attention :</b> Cette action est irréversible et révèlera immédiatement votre position à cet adversaire.`
             : `Vous avez sondé le système. Voulez-vous établir une connexion permanente ?`;
-        
+
         const outcome = await showProbeActionChoice(title, mainText, timerText);
-    
+
         if (outcome === 'cancel') {
             return;
         }
-    
+
         if (outcome === 'rescan') {
             const probeSuccessful = await performProbe(currentSystem, discoveredSystem, direction, viewingPlayer);
             if (probeSuccessful) {
@@ -309,7 +311,7 @@ const handleExploration = async (direction) => {
             }
             return;
         }
-    
+
         if (outcome === 'establish') {
             // ==========================================================
             // DEBUT DE LA CORRECTION : Re-vérification des conditions avant d'établir le lien
@@ -320,7 +322,7 @@ const handleExploration = async (direction) => {
                 showNotification("Action impossible : vous devez contrôler au moins une planète dans ce système pour établir un lien.", 'warning', 8000);
                 return;
             }
-            
+
             // Condition 2 : Doit avoir une ligne de ravitaillement ininterrompue vers le système natal.
             if (!hasSupplyLine(currentSystem.id, viewingPlayer.id)) {
                 showNotification("<b>Ligne de ravitaillement rompue !</b> Impossible d'établir un lien car ce système n'est plus connecté à votre bastion.", 'error', 8000);
@@ -333,16 +335,16 @@ const handleExploration = async (direction) => {
             currentSystem.connections[direction] = discoveredSystem.id;
             discoveredSystem.connections[oppositeDirection] = currentSystem.id;
             currentSystem.probedConnections[direction] = null;
-    
+
             if (!viewingPlayer.discoveredSystemIds.includes(discoveredSystem.id)) {
                 viewingPlayer.discoveredSystemIds.push(discoveredSystem.id);
             }
-            
+
             if (viewingPlayer.probedSystemIds) {
                 const index = viewingPlayer.probedSystemIds.indexOf(discoveredSystem.id);
                 if (index > -1) viewingPlayer.probedSystemIds.splice(index, 1);
             }
-    
+
             logAction(viewingPlayer.id, `<b>${viewingPlayer.name}</b> a établi une connexion permanente entre <b>${currentSystem.name}</b> et <b>${discoveredSystem.name}</b>.`, 'info', '🔗');
             if (probedInfo.status === 'player_contact') {
                 const discoveredPlayer = campaignData.players.find(p => p.id === discoveredSystem.owner);
@@ -356,11 +358,11 @@ const handleExploration = async (direction) => {
                             type: 'error'
                         });
                         logAction(viewingPlayer.id, `La position de <b>${viewingPlayer.name}</b> a été révélée à <b>${discoveredPlayer.name}</b> suite au contact.`, 'alert', '💥');
-                        showNotification(`Le joueur <b>${discoveredPlayer.name}</b> a été alerté de votre présence.`, 'warning');
+                        showNotification(`Le joueur <b>${discoveredPlayer.name}</b> a été alerté de votre presence.`, 'warning');
                     }
                 }
             }
-            
+
             saveData();
             showNotification(`Connexion établie vers le système ${discoveredSystem.name} !`, 'success');
             renderPlanetarySystem(discoveredSystem.id);
@@ -373,7 +375,7 @@ const handleExploration = async (direction) => {
             "Route non cartographiée détectée",
             `Vos scanners indiquent un couloir de navigation stable mais non cartographié vers le système <b>${discoveredSystem.name}</b>. Ce passage est déjà utilisé par d'autres flottes. Comment voulez-vous procéder ?`
         );
-    
+
         if (choice === 'probe') {
             const probeSuccessful = await performProbe(currentSystem, discoveredSystem, direction, viewingPlayer);
             if (probeSuccessful) {
@@ -396,7 +398,7 @@ const handleExploration = async (direction) => {
         "Méthode d'Exploration",
         "Comment souhaitez-vous procéder ? Un saut à l'aveugle est gratuit mais risqué. L'envoi d'une sonde coûte 1 RP (ou 1 Sonde Gratuite) mais fournit des informations vitales avant de s'engager."
     );
-    
+
     if (explorationChoice === 'probe') {
         const probeSuccessful = await performProbe(currentSystem, discoveredSystem, direction, viewingPlayer);
         if(probeSuccessful) {
@@ -431,8 +433,8 @@ const handleExploration = async (direction) => {
         if (hasEnemyInTarget) {
             showNotification(`<b>Contact hostile !</b> Le saut à l'aveugle vous a mené dans le système <b>${discoveredSystem.name}</b>. Votre arrivée a été détectée !`, 'error', 8000);
             logAction(viewingPlayer.id, `CONTACT HOSTILE ! Le saut de <b>${viewingPlayer.name}</b> l'a mené au système <b>${discoveredSystem.name}</b>.`, 'combat', '💥');
-            
-            const enemyPlayerIds = new Set(discoveredSystem.planets.map(p => p.owner).filter(o => o !== 'neutral' && o !== viewingPlayer.id));
+
+            const enemyPlayerIds = new Set(targetSystem.planets.map(p => p.owner).filter(o => o !== 'neutral' && o !== viewingPlayer.id));
             enemyPlayerIds.forEach(enemyId => {
                 const enemyPlayer = campaignData.players.find(p => p.id === enemyId);
                 if (enemyPlayer && !enemyPlayer.discoveredSystemIds.includes(currentSystem.id)) {
@@ -444,7 +446,7 @@ const handleExploration = async (direction) => {
             showNotification(`Saut à l'aveugle réussi ! Vous avez découvert le système PNJ "<b>${discoveredSystem.name}</b>".`, 'success', 8000);
             logAction(viewingPlayer.id, `Saut réussi ! <b>${viewingPlayer.name}</b> a découvert <b>${discoveredSystem.name}</b>.`, 'explore', '✅');
         }
-        
+
         saveData();
         renderPlanetarySystem(discoveredSystem.id);
     }
