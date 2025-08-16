@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     backToSystemBtn.addEventListener('click', () => {
         if (currentlyViewedSystemId) {
+            returnToPlayerDetailAfterWorldModal = true;
             playerDetailView.classList.add('hidden');
             openModal(worldModal);
             setTimeout(() => renderPlanetarySystem(currentlyViewedSystemId), 50);
@@ -182,16 +183,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleModalClose(modal) {
         closeModal(modal);
-    
+
         if (modal === worldModal) {
-            mapViewingPlayerId = null; 
+            mapViewingPlayerId = null;
             renderActionLog();
             renderPlayerList();
+            if (returnToPlayerDetailAfterWorldModal) {
+                playerDetailView.classList.remove('hidden');
+                returnToPlayerDetailAfterWorldModal = false;
+            }
         }
         if (modal === mapModal) {
             const previouslySelected = document.querySelector('.system-node.selected-for-action');
             if(previouslySelected) previouslySelected.classList.remove('selected-for-action');
-            selectedSystemOnMapId = null; 
+            selectedSystemOnMapId = null;
         }
         if (modal === planetBonusModal && bonusModalTimer) {
             clearInterval(bonusModalTimer);
@@ -239,6 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const playerIndex = parseInt(target.dataset.index);
             const player = campaignData.players[playerIndex];
             if (player.systemId) {
+                returnToPlayerDetailAfterWorldModal = false;
                 activePlayerIndex = playerIndex;
                 mapViewingPlayerId = player.id;
                 openModal(worldModal);
@@ -1067,6 +1073,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (systemId) {
                     closeModal(mapModal);
+                    returnToPlayerDetailAfterWorldModal = false;
                     openModal(worldModal);
                     setTimeout(() => renderPlanetarySystem(systemId), 50);
                 }
