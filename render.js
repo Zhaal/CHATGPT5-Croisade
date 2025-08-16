@@ -957,37 +957,47 @@ function renderPlanetBonusModal() {
 
     contentDiv.innerHTML = '';
 
-    // --- Section Monde Forge ---
-    const forgeWorldBonus = getForgeWorldBonus(player);
-    let forgeWorldsCount = 0;
-    campaignData.systems.forEach(system => {
-        system.planets.forEach(planet => {
-            if (planet.owner === player.id && planet.type === 'Monde Forge') {
-                forgeWorldsCount++;
-            }
+    // Helper to find all planets for a player with their system info
+    const getPlayerPlanets = (playerId) => {
+        const planets = [];
+        campaignData.systems.forEach(system => {
+            system.planets.forEach(planet => {
+                if (planet.owner === playerId) {
+                    planets.push({ ...planet, systemName: system.name, systemId: system.id });
+                }
+            });
         });
-    });
+        return planets;
+    };
+
+    const allPlayerPlanets = getPlayerPlanets(player.id);
+
+    // --- Section Monde Forge ---
+    const forgeWorlds = allPlayerPlanets.filter(p => p.type === 'Monde Forge');
+    const forgeWorldBonus = getForgeWorldBonus(player);
 
     const forgeSection = document.createElement('div');
     forgeSection.className = 'bonus-section';
     forgeSection.innerHTML = `
-        <h4><span class="legend-color" data-type="Monde Forge"></span> Mondes Forges</h4>
-        <p>Nombre de mondes : <strong>${forgeWorldsCount}</strong></p>
-        <p>Bonus à la limite de Véhicules/Monstres : <strong style="color: var(--friendly-color);">+${forgeWorldBonus}%</strong></p>
+        <h4><span class="legend-color" data-type="Monde Forge"></span> Mondes Forges (${forgeWorlds.length})</h4>
+        <p>Bonus total à la limite de Véhicules/Monstres : <strong style="color: var(--friendly-color);">+${forgeWorldBonus}%</strong></p>
     `;
+    if (forgeWorlds.length > 0) {
+        let forgeList = '<ul>';
+        forgeWorlds.forEach(planet => {
+            forgeList += `<li><strong>${planet.name}</strong> (${planet.systemName})</li>`;
+        });
+        forgeList += '</ul>';
+        forgeSection.innerHTML += forgeList;
+    } else {
+        forgeSection.innerHTML += '<p>Vous ne contrôlez aucun Monde Forge.</p>';
+    }
     contentDiv.appendChild(forgeSection);
 
     contentDiv.appendChild(document.createElement('hr'));
 
     // --- Section Agri-Monde ---
-    const playerAgriWorlds = [];
-    campaignData.systems.forEach(system => {
-        system.planets.forEach(planet => {
-            if (planet.owner === player.id && planet.type === 'Agri-monde') {
-                playerAgriWorlds.push(planet);
-            }
-        });
-    });
+    const playerAgriWorlds = allPlayerPlanets.filter(p => p.type === 'Agri-monde');
 
     const agriSection = document.createElement('div');
     agriSection.className = 'bonus-section';
@@ -1000,7 +1010,7 @@ function renderPlanetBonusModal() {
             if (planet.agriWorldCaptureTimestamp) {
                 timerHtml = `Temps restant : <strong id="${timerId}">Calcul...</strong>`;
             }
-            agriSection.innerHTML += `<p><strong>${planet.name}:</strong> ${timerHtml}</p>`;
+            agriSection.innerHTML += `<p><strong>${planet.name}</strong> (${planet.systemName}): ${timerHtml}</p>`;
         });
          agriSection.innerHTML += `<p style="margin-top:15px; font-size: 0.9em; color: var(--text-muted-color);"><i>Note: Le bonus de +1 PR par semaine pour chaque Agri-monde est un bonus récurrent qui se déclenche automatiquement.</i></p>`;
     } else {
@@ -1011,14 +1021,7 @@ function renderPlanetBonusModal() {
     contentDiv.appendChild(document.createElement('hr'));
 
     // --- Section Monde Saint ---
-    const playerHolyWorlds = [];
-    campaignData.systems.forEach(system => {
-        system.planets.forEach(planet => {
-            if (planet.owner === player.id && planet.type === 'Monde Saint (relique)') {
-                playerHolyWorlds.push(planet);
-            }
-        });
-    });
+    const playerHolyWorlds = allPlayerPlanets.filter(p => p.type === 'Monde Saint (relique)');
 
     const holySection = document.createElement('div');
     holySection.className = 'bonus-section';
@@ -1033,7 +1036,7 @@ function renderPlanetBonusModal() {
             } else {
                 statusHtml = `<button class="btn-secondary assign-relic-btn" data-planet-id="${planet.id}">Attribuer la Relique</button>`;
             }
-            holySection.innerHTML += `<p><strong>${planet.name}:</strong> ${statusHtml}</p>`;
+            holySection.innerHTML += `<p><strong>${planet.name}</strong> (${planet.systemName}): ${statusHtml}</p>`;
         });
     } else {
         holySection.innerHTML += '<p>Vous ne contrôlez aucun Monde Saint.</p>';
