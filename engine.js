@@ -41,7 +41,15 @@ let startY, scrollTopStart;
 let bonusModalTimer = null;
 
 const STEP_DISTANCE = 250;
-const GALAXY_SIZE = 9;
+let GALAXY_SIZE = 9;
+let planetTypeWeights = {
+    "Monde Ruche": 38,
+    "Agri-monde": 25,
+    "Monde Sauvage": 15,
+    "Monde Mort": 10,
+    "Monde Forge": 10,
+    "Monde Saint (relique)": 2
+};
 
 //======================================================================
 //  SYSTÈME DE NOTIFICATION, CONFIRMATION, LOG & MODALES
@@ -718,6 +726,25 @@ const migrateData = () => {
         campaignData.sessionLog = [];
         dataWasModified = true;
     }
+
+    if (campaignData.galaxySize === undefined) {
+        campaignData.galaxySize = 9;
+        dataWasModified = true;
+    }
+    GALAXY_SIZE = campaignData.galaxySize;
+
+    if (!campaignData.planetWeights) {
+        campaignData.planetWeights = {
+            "Monde Ruche": 38,
+            "Agri-monde": 25,
+            "Monde Sauvage": 15,
+            "Monde Mort": 10,
+            "Monde Forge": 10,
+            "Monde Saint (relique)": 2
+        };
+        dataWasModified = true;
+    }
+    planetTypeWeights = campaignData.planetWeights;
 
     // Ancienne fonction pour la compatibilité de `discoveredSystemIds`
     const oldGetReachableSystems = (startSystemId) => {
