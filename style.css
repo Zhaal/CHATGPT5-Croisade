@@ -909,6 +909,12 @@ label {
     width: 80px;
 }
 
+#warp-planet-total {
+    text-align: right;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
 /* --- NOUVEAU : Notifications Stylisées --- */
 #notification-container {
     position: fixed;
