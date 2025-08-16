@@ -52,6 +52,30 @@ document.addEventListener('DOMContentLoaded', () => {
     customTooltip.id = 'custom-tooltip';
     document.body.appendChild(customTooltip);
 
+    const factionFamilies = {
+        'Imperium': [
+            'Adepta Sororitas', 'Adeptus Custodes', 'Adeptus Mechanicus', 'Adeptus Titanicus',
+            'Agents of the Imperium', 'Astra Militarum', 'Black Templars', 'Blood Angels',
+            'Dark Angels', 'Deathwatch', 'Grey Knights', 'Imperial Knights',
+            'Space Marines', 'Space Wolves'
+        ],
+        'Chaos': [
+            'Chaos Daemons', 'Chaos Knights', 'Chaos Space Marines', 'Death Guard',
+            "Emperor's Children", 'Thousand Sons', 'World Eaters'
+        ],
+        'Xenos': [
+            'Aeldari', 'Drukhari', 'Genestealer Cults', 'Leagues of Votann',
+            'Necrons', 'Orks', "T'au Empire", 'Tyranids'
+        ]
+    };
+
+    function getFactionFamily(faction) {
+        for (const [family, factions] of Object.entries(factionFamilies)) {
+            if (factions.includes(faction)) return family;
+        }
+        return '';
+    }
+
     //======================================================================
     //  GESTION DES ÉVÉNEMENTS PRINCIPAUX
     //======================================================================
@@ -1219,13 +1243,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function openNpcCombatModal(planetId, attackIntent = 'conquer') {
         const attacker = campaignData.players.find(p => p.id === mapViewingPlayerId);
         if (!attacker) return;
-    
+
         closeModal(planetTypeModal);
-    
+
         document.getElementById('npc-combat-attacker-name').textContent = attacker.name;
         const defenderSelect = document.getElementById('npc-combat-defender-select');
         defenderSelect.innerHTML = '<option value="" disabled selected>Sélectionner un défenseur...</option>';
-    
+
         campaignData.players.forEach(p => {
             if (p.id !== attacker.id) {
                 const option = document.createElement('option');
@@ -1234,11 +1258,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 defenderSelect.appendChild(option);
             }
         });
-    
+
+        const helpSelect = document.getElementById('npc-help-select');
+        helpSelect.innerHTML = '<option value="" disabled selected>Choisir un allié...</option>';
+        const attackerFamily = getFactionFamily(attacker.faction);
+        campaignData.players.forEach(p => {
+            if (p.id !== attacker.id && getFactionFamily(p.faction) === attackerFamily) {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = p.name;
+                helpSelect.appendChild(option);
+            }
+        });
+        document.getElementById('npc-call-help-btn').disabled = false;
+
         npcCombatModal.dataset.planetId = planetId;
         npcCombatModal.dataset.attackIntent = attackIntent;
         openModal(npcCombatModal);
     }
+
+    document.getElementById('npc-call-help-btn').addEventListener('click', () => {
+        const attacker = campaignData.players.find(p => p.id === mapViewingPlayerId);
+        const helperId = document.getElementById('npc-help-select').value;
+        if (!attacker || !helperId) {
+            showNotification("Veuillez sélectionner un allié.", 'warning');
+            return;
+        }
+        const helper = campaignData.players.find(p => p.id === helperId);
+        if (attacker.requisitionPoints < 1) {
+            showNotification("Pas assez de PR pour appeler à l'aide.", 'error');
+            return;
+        }
+        attacker.requisitionPoints--;
+        helper.requisitionPoints++;
+        logAction(attacker.id, `<b>${attacker.name}</b> a appelé <b>${helper.name}</b> à l'aide. -1 PR.`, 'info', '📢');
+        logAction(helper.id, `<b>${helper.name}</b> a répondu à l'appel de <b>${attacker.name}</b>. +1 PR.`, 'info', '🤝');
+        showNotification(`${helper.name} a été appelé à l'aide !`, 'info');
+        document.getElementById('npc-call-help-btn').disabled = true;
+        saveData();
+        if (!playerDetailView.classList.contains('hidden')) {
+            renderPlayerDetail();
+        }
+    });
     
     document.getElementById('finish-npc-combat-btn').addEventListener('click', async () => {
         const attacker = campaignData.players.find(p => p.id === mapViewingPlayerId);
@@ -1345,21 +1406,59 @@ document.addEventListener('DOMContentLoaded', () => {
     
         const planet = system.planets.find(p => p.id === planetId);
         if (!planet) return;
-    
+
         const defender = campaignData.players.find(p => p.id === planet.owner);
         if (!defender) return;
     
         closeModal(planetTypeModal);
     
         document.getElementById('pvp-combat-attacker-name').textContent = attacker.name;
-        document.getElementById('pvp-combat-defender-name').textContent = defender.name;
-    
+       document.getElementById('pvp-combat-defender-name').textContent = defender.name;
+
+        const helpSelect = document.getElementById('pvp-help-select');
+        helpSelect.innerHTML = '<option value="" disabled selected>Choisir un allié...</option>';
+        const attackerFamily = getFactionFamily(attacker.faction);
+        campaignData.players.forEach(p => {
+            if (p.id !== attacker.id && getFactionFamily(p.faction) === attackerFamily) {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = p.name;
+                helpSelect.appendChild(option);
+            }
+        });
+        document.getElementById('pvp-call-help-btn').disabled = false;
+
         pvpCombatModal.dataset.planetId = planetId;
         pvpCombatModal.dataset.attackerId = attacker.id;
         pvpCombatModal.dataset.defenderId = defender.id;
         pvpCombatModal.dataset.attackIntent = attackIntent;
         openModal(pvpCombatModal);
     }
+
+    document.getElementById('pvp-call-help-btn').addEventListener('click', () => {
+        const attackerId = pvpCombatModal.dataset.attackerId;
+        const attacker = campaignData.players.find(p => p.id === attackerId);
+        const helperId = document.getElementById('pvp-help-select').value;
+        if (!attacker || !helperId) {
+            showNotification("Veuillez sélectionner un allié.", 'warning');
+            return;
+        }
+        const helper = campaignData.players.find(p => p.id === helperId);
+        if (attacker.requisitionPoints < 1) {
+            showNotification("Pas assez de PR pour appeler à l'aide.", 'error');
+            return;
+        }
+        attacker.requisitionPoints--;
+        helper.requisitionPoints++;
+        logAction(attacker.id, `<b>${attacker.name}</b> a appelé <b>${helper.name}</b> à l'aide. -1 PR.`, 'info', '📢');
+        logAction(helper.id, `<b>${helper.name}</b> a répondu à l'appel de <b>${attacker.name}</b>. +1 PR.`, 'info', '🤝');
+        showNotification(`${helper.name} a été appelé à l'aide !`, 'info');
+        document.getElementById('pvp-call-help-btn').disabled = true;
+        saveData();
+        if (!playerDetailView.classList.contains('hidden')) {
+            renderPlayerDetail();
+        }
+    });
     
     document.getElementById('finish-pvp-combat-btn').addEventListener('click', async () => {
         const { planetId, attackerId, defenderId, attackIntent } = pvpCombatModal.dataset;
