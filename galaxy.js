@@ -73,7 +73,8 @@ const generateGalaxy = () => {
     
     campaignData.systems = newSystems;
     campaignData.isGalaxyGenerated = true;
-    showNotification(`Galaxie de <b>${newSystems.length}</b> systèmes PNJ créée.`, 'success');
+    const systemLabel = newSystems.length > 1 ? 'systèmes' : 'système';
+    showNotification(`Galaxie de <b>${newSystems.length}</b> ${systemLabel} PNJ créée.`, 'success');
 };
 
 /**
