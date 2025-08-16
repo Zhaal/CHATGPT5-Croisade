@@ -235,7 +235,54 @@ function showPasswordConfirm(title, text) {
         confirmModalInput.addEventListener('keydown', keydownListener);
 
         // Focus the input field when the modal opens
-        setTimeout(() => confirmModalInput.focus(), 100);
+    setTimeout(() => confirmModalInput.focus(), 100);
+    });
+}
+
+
+function showWarpSettingsModal(currentSize, currentWeights) {
+    return new Promise(resolve => {
+        const modal = document.getElementById('warp-settings-modal');
+        const sizeInput = document.getElementById('warp-galaxy-size');
+        const weightsContainer = document.getElementById('warp-planet-weights');
+        const okBtn = document.getElementById('warp-settings-ok-btn');
+        const cancelBtn = document.getElementById('warp-settings-cancel-btn');
+
+        sizeInput.value = currentSize;
+        weightsContainer.innerHTML = '';
+        Object.entries(currentWeights).forEach(([type, weight]) => {
+            const div = document.createElement('div');
+            div.className = 'form-group';
+            div.innerHTML = `<label>${type}</label><input type="number" data-type="${type}" value="${weight}" min="0" max="100">`;
+            weightsContainer.appendChild(div);
+        });
+
+        openModal(modal);
+
+        const closeAndResolve = (result) => {
+            closeModal(modal);
+            okBtn.removeEventListener('click', okListener);
+            cancelBtn.removeEventListener('click', cancelListener);
+            modal.querySelector('.close-btn').removeEventListener('click', cancelListener);
+            resolve(result);
+        };
+
+        const okListener = () => {
+            const newSize = parseInt(sizeInput.value);
+            const newWeights = {};
+            weightsContainer.querySelectorAll('input').forEach(input => {
+                const t = input.dataset.type;
+                const val = parseInt(input.value);
+                newWeights[t] = isNaN(val) ? currentWeights[t] : val;
+            });
+            closeAndResolve({ size: isNaN(newSize) ? currentSize : newSize, weights: newWeights });
+        };
+
+        const cancelListener = () => closeAndResolve(null);
+
+        okBtn.addEventListener('click', okListener);
+        cancelBtn.addEventListener('click', cancelListener);
+        modal.querySelector('.close-btn').addEventListener('click', cancelListener);
     });
 }
 

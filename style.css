@@ -884,6 +884,31 @@ label {
     margin-top: 20px;
 }
 
+/* --- Modal Explosion du Warp --- */
+#warp-settings-modal .modal-content.warhammer {
+    background-color: #1a0f0f;
+    border: 4px solid var(--danger-color);
+    box-shadow: 0 0 25px var(--danger-color);
+    font-family: 'Cinzel', serif;
+}
+
+#warp-settings-modal h3 {
+    color: var(--danger-color);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#warp-planet-weights .form-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#warp-planet-weights input {
+    width: 80px;
+}
+
 /* --- NOUVEAU : Notifications Stylisées --- */
 #notification-container {
     position: fixed;

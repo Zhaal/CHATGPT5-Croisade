@@ -1110,21 +1110,17 @@ document.addEventListener('DOMContentLoaded', () => {
             "Êtes-vous sûr ? Cette action va générer une <b>nouvelle carte galactique</b> et réinitialiser la position de TOUS les joueurs. Leurs fiches de personnage (unités, points, etc.) seront conservées.<br><br><b>Pour confirmer, entrez le mot de passe ci-dessous.</b>"
         );
         if (confirmReset) {
-            const sizeInput = prompt("Dimension de la galaxie (taille d'un côté)", GALAXY_SIZE);
-            const newSize = parseInt(sizeInput);
-            if (!isNaN(newSize) && newSize > 0) {
-                GALAXY_SIZE = newSize;
-                campaignData.galaxySize = newSize;
-                updateGalaxyFormatDisplay();
+            const settings = await showWarpSettingsModal(GALAXY_SIZE, planetTypeWeights);
+            if (settings) {
+                const newSize = parseInt(settings.size);
+                if (!isNaN(newSize) && newSize > 0) {
+                    GALAXY_SIZE = newSize;
+                    campaignData.galaxySize = newSize;
+                    updateGalaxyFormatDisplay();
+                }
+                planetTypeWeights = settings.weights;
+                campaignData.planetWeights = settings.weights;
             }
-
-            const newWeights = {};
-            Object.entries(planetTypeWeights).forEach(([type, weight]) => {
-                const input = parseInt(prompt(`% de ${type}`, weight));
-                newWeights[type] = isNaN(input) ? weight : input;
-            });
-            planetTypeWeights = newWeights;
-            campaignData.planetWeights = newWeights;
 
             const playerSystemIds = new Set(campaignData.players.map(p => p.systemId));
             const playerSystems = campaignData.systems.filter(s => playerSystemIds.has(s.id));
