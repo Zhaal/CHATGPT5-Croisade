@@ -222,13 +222,18 @@ const renderOrderOfBattle = () => {
             ? `${unit.name} <span class="doubled-indicator">x2</span>`
             : unit.name;
 
+        const rankCell = unit.pendingOptimization
+            ? `<span class="blink">${rank}</span> <span class="optimisation-disponible">(Optimisation disponible)</span>`
+            : rank;
+
         row.innerHTML = `
             <td>${displayName}</td>
+            <td>${unit.nickname || ''}</td>
             <td>${unit.role}</td>
             <td>${unit.power || 0}</td>
             <td>${unit.crusadePoints || 0}</td>
             <td>${unit.xp}</td>
-            <td>${rank}</td>
+            <td>${rankCell}</td>
             <td>
                 <button class="btn-secondary edit-unit-btn" data-index="${index}">Détails</button>
                 <button class="btn-danger delete-unit-btn" data-index="${index}">Supprimer</button>
