@@ -180,6 +180,7 @@
                 <thead>
                     <tr>
                         <th>Nom de l'Unité</th>
+                        <th>Surnom</th>
                         <th>Rôle</th>
                         <th>Coût en Points</th>
                         <th>Points de Croisade</th>
@@ -259,11 +260,15 @@
             <form id="unit-form">
                 <input type="hidden" id="unit-id">
                 <div class="unit-card-header">
-                     <div class="form-group">
+                    <div class="form-group">
                         <label for="unit-name">Nom de l'unité :</label>
                         <select id="unit-name" required>
                             <option value="" disabled selected>Choisir une unité...</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="unit-nickname">Surnom :</label>
+                        <input type="text" id="unit-nickname">
                     </div>
                 </div>
 

@@ -285,13 +285,17 @@ const populateUpgradeSelectors = () => {
     }
 };
 
-const addUpgradeToUnitData = (unit, textareaId, upgradeName, upgradeDesc, prefix = '') => {
+const addUpgradeToUnitData = (unit, textareaId, upgradeName, upgradeDesc, prefix = '', isOptimization = true) => {
     const textToAdd = `\n- ${prefix}${upgradeName}: ${upgradeDesc}`;
     const key = textareaId.replace('unit-', '');
     const dataKey = key === 'honours' ? 'battleHonours' : (key === 'scars' ? 'battleScars' : key);
 
     unit[dataKey] = (unit[dataKey] || '').trim() + textToAdd;
     document.getElementById(textareaId).value = unit[dataKey];
+
+    if (isOptimization) {
+        unit.pendingOptimization = false;
+    }
 };
 
 
@@ -395,7 +399,7 @@ document.getElementById('add-battle-scar-btn').addEventListener('click', () => {
     const scarDesc = findUpgradeDescription(scarName);
     const unit = campaignData.players[activePlayerIndex].units[editingUnitIndex];
 
-    addUpgradeToUnitData(unit, 'unit-scars', scarName, scarDesc);
+    addUpgradeToUnitData(unit, 'unit-scars', scarName, scarDesc, '', false);
     saveData();
     
     select.value = '';

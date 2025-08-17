@@ -194,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const newRank = getRankFromXp(unit.xp);
             if (newRank !== getRankFromXp(prevXp)) {
+                unit.pendingOptimization = true;
                 showNotification(`${unit.name} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
             }
         });
@@ -208,6 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 logAction(player.id, `<b>${honouredUnit.name}</b> a été mis à l'honneur (+3 XP).`, 'info', '🏅');
                 const newRank = getRankFromXp(honouredUnit.xp);
                 if (newRank !== getRankFromXp(prevXp)) {
+                    honouredUnit.pendingOptimization = true;
                     showNotification(`${honouredUnit.name} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
                 }
             }
@@ -694,6 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const player = campaignData.players[activePlayerIndex];
         const unitData = {
             name: name,
+            nickname: document.getElementById('unit-nickname').value,
             role: document.getElementById('unit-role').value,
             power: parseInt(document.getElementById('unit-power').value) || 0,
             xp: parseInt(document.getElementById('unit-xp').value) || 0,
@@ -706,6 +709,11 @@ document.addEventListener('DOMContentLoaded', () => {
             markedForGlory: parseInt(document.getElementById('unit-marked-for-glory').value) || 0
         };
         const existingUnit = player.units[editingUnitIndex];
+        const prevRank = getRankFromXp(existingUnit.xp || 0);
+        const newRank = getRankFromXp(unitData.xp);
+        if (newRank !== prevRank) {
+            unitData.pendingOptimization = true;
+        }
         player.units[editingUnitIndex] = { ...existingUnit, ...unitData };
         saveData();
         renderPlayerDetail();
@@ -719,6 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const player = campaignData.players[activePlayerIndex];
         const unitData = {
             name: name,
+            nickname: document.getElementById('unit-nickname').value,
             role: document.getElementById('unit-role').value,
             power: parseInt(document.getElementById('unit-power').value) || 0,
             xp: parseInt(document.getElementById('unit-xp').value) || 0,
@@ -730,13 +739,19 @@ document.addEventListener('DOMContentLoaded', () => {
             battleScars: document.getElementById('unit-scars').value,
             markedForGlory: parseInt(document.getElementById('unit-marked-for-glory').value) || 0
         };
-    
+
         if (editingUnitIndex > -1) {
             const existingUnit = player.units[editingUnitIndex];
+            const prevRank = getRankFromXp(existingUnit.xp || 0);
+            const newRank = getRankFromXp(unitData.xp);
+            if (newRank !== prevRank) {
+                unitData.pendingOptimization = true;
+            }
             player.units[editingUnitIndex] = { ...existingUnit, ...unitData };
         } else {
             unitData.id = crypto.randomUUID();
             unitData.detachmentUpgrades = [];
+            unitData.pendingOptimization = false;
             player.units.push(unitData);
             logAction(player.id, `Nouvelle unité ajoutée à l'ordre de bataille : <b>${unitData.name}</b>.`, 'info', '➕');
         }

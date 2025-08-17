@@ -1306,3 +1306,18 @@ label {
 .post-battle-unit .scar-select {
     margin-left: 5px;
 }
+
+.blink {
+    animation: blink-animation 1s step-start 0s infinite;
+}
+
+@keyframes blink-animation {
+    50% { opacity: 0; }
+}
+
+.optimisation-disponible {
+    color: var(--danger-color);
+    font-weight: bold;
+    margin-left: 5px;
+    font-size: 0.9em;
+}
