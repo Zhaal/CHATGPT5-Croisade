@@ -159,25 +159,8 @@ const renderPlayerDetail = () => {
 
     document.getElementById('supply-limit').value = player.supplyLimit;
 
-    // Affichage de la limite de Véhicules/Monstres
-    if (typeof getForgeWorldBonus === 'function') {
-        const forgeWorldBonus = getForgeWorldBonus(player);
-        const baseLimit = 30;
-        const totalLimit = baseLimit + forgeWorldBonus;
-        const limitDisplay = document.getElementById('vehicle-monster-limit-display');
-        const limitBox = document.getElementById('vehicle-monster-limit-box');
-
-        if (limitDisplay && limitBox) {
-            if (forgeWorldBonus > 0) {
-                limitDisplay.textContent = `${totalLimit}% (${baseLimit}% + ${forgeWorldBonus}%)`;
-            } else {
-                limitDisplay.textContent = `${baseLimit}%`;
-            }
-            limitBox.classList.remove('hidden');
-        } else if (limitBox) {
-            limitBox.classList.add('hidden');
-        }
-    }
+    // Affichage de la limite de Véhicules/Monstres avec le ratio utilisé/limite
+    updateVehicleMonsterLimitDisplay();
 
     // MODIFICATION : Mise à jour du textContent au lieu de la value
     document.getElementById('upgrade-supply-cost').textContent = player.upgradeSupplyCost || 0;
@@ -206,6 +189,8 @@ const updateSupplyDisplay = () => {
 
     document.getElementById('supply-used').textContent = totalUsed;
     document.getElementById('supply-remaining').textContent = remainingSupply;
+    // Actualise l'affichage du ratio de Véhicules/Monstres
+    updateVehicleMonsterLimitDisplay();
 };
 
 const renderOrderOfBattle = () => {
@@ -1111,4 +1096,31 @@ function renderPlanetBonusModal() {
         updateTimers();
         bonusModalTimer = setInterval(updateTimers, 1000);
     }
+}
+// Met à jour l'affichage de la limite de Véhicules/Monstres avec le ratio utilisé/limite
+function updateVehicleMonsterLimitDisplay() {
+    if (activePlayerIndex === -1) return;
+    const player = campaignData.players[activePlayerIndex];
+
+    const baseLimit = 30;
+    const forgeWorldBonus = typeof getForgeWorldBonus === 'function' ? getForgeWorldBonus(player) : 0;
+    const totalLimitPercent = baseLimit + forgeWorldBonus;
+
+    const limitDisplay = document.getElementById('vehicle-monster-limit-display');
+    const limitBox = document.getElementById('vehicle-monster-limit-box');
+    if (!limitDisplay || !limitBox) return;
+
+    const vehicleMonsterUsed = (player.units || []).reduce((sum, unit) => {
+        return sum + ((unit.role === 'Vehicule' || unit.role === 'Monstre') ? (unit.power || 0) : 0);
+    }, 0);
+
+    const maxVehicleMonster = Math.floor((player.supplyLimit || 0) * totalLimitPercent / 100);
+
+    if (forgeWorldBonus > 0) {
+        limitDisplay.textContent = `${vehicleMonsterUsed}/${maxVehicleMonster} PL (${baseLimit}% + ${forgeWorldBonus}% = ${totalLimitPercent}%)`;
+    } else {
+        limitDisplay.textContent = `${vehicleMonsterUsed}/${maxVehicleMonster} PL (${baseLimit}%)`;
+    }
+
+    limitBox.classList.remove('hidden');
 }
