@@ -185,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (kills > 0) {
                 unit.kills = (unit.kills || 0) + kills;
+                unit.markedForGlory = (unit.markedForGlory || 0) + kills;
                 logAction(player.id, `<b>${unit.name}</b> a réalisé ${kills} destructions.`, 'info', '☠️');
             }
             if (destroyed && roll === 1 && scarName) {
