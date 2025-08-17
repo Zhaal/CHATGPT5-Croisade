@@ -113,12 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
             unitDiv.dataset.unitId = unit.id;
             unitDiv.innerHTML = `
                 <h4>${unit.name}</h4>
-                <label><input type="checkbox" class="present-checkbox"> Présent</label>
-                <label>Kills: <input type="number" class="kills-input" min="0" value="0" style="width:60px;"></label>
-                <label><input type="checkbox" class="destroyed-checkbox"> Détruite</label>
-                <button type="button" class="roll-btn hidden">Jet D6</button>
-                <span class="roll-result" style="margin-left:5px;"></span>
-                <select class="scar-select hidden">${getBattleScarOptionsHtml(player)}</select>
+                <div class="post-battle-row">
+                    <label><input type="checkbox" class="present-checkbox" checked> Présent</label>
+                    <label>Kills: <input type="number" class="kills-input" min="0" value="0" style="width:60px;"></label>
+                    <label><input type="checkbox" class="destroyed-checkbox"> Détruite</label>
+                    <button type="button" class="roll-btn hidden">Jet D6</button>
+                    <span class="roll-result"></span>
+                    <select class="scar-select hidden">${getBattleScarOptionsHtml(player)}</select>
+                </div>
             `;
 
             const destroyedChk = unitDiv.querySelector('.destroyed-checkbox');
@@ -184,9 +186,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 logAction(player.id, `<b>${unit.name}</b> a participé à la bataille (+1 XP).`, 'info', '🎖️');
             }
             if (kills > 0) {
-                unit.kills = (unit.kills || 0) + kills;
+                const previousKills = unit.kills || 0;
+                unit.kills = previousKills + kills;
                 unit.markedForGlory = (unit.markedForGlory || 0) + kills;
                 logAction(player.id, `<b>${unit.name}</b> a réalisé ${kills} destructions.`, 'info', '☠️');
+
+                const prevBonusXp = Math.floor(previousKills / 3);
+                const newBonusXp = Math.floor(unit.kills / 3);
+                const bonusXp = newBonusXp - prevBonusXp;
+                if (bonusXp > 0) {
+                    unit.xp = (unit.xp || 0) + bonusXp;
+                    logAction(player.id, `<b>${unit.name}</b> gagne ${bonusXp} XP pour ses destructions.`, 'info', '⚔️');
+                }
             }
             if (destroyed && roll === 1 && scarName) {
                 const desc = findUpgradeDescription ? findUpgradeDescription(scarName) : '';
