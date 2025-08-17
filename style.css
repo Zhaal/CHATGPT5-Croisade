@@ -1322,49 +1322,67 @@ label {
     box-shadow: 0 0 15px rgba(163,124,39,0.7), inset 0 0 10px rgba(255,215,0,0.2);
 }
 
-.post-battle-unit h4 {
-    margin: 0 0 10px 0;
-    font-family: 'Cinzel', serif;
-    color: #f0e6d2;
+.post-battle-unit .unit-header {
     display: flex;
     align-items: center;
     gap: 8px;
+    margin: 0 0 10px 0;
 }
 
-.post-battle-unit h4 .unit-icon {
+.post-battle-unit .unit-header h4 {
+    margin: 0;
+    font-family: 'Cinzel', serif;
+    color: #f0e6d2;
+}
+
+.post-battle-unit .unit-header .unit-icon {
     font-size: 1.2em;
     color: var(--primary-color);
 }
 
-.post-battle-row {
+.post-battle-unit .post-battle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.post-battle-unit .stat-box {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(163,124,39,0.2);
+    border-radius: 6px;
+    padding: 8px;
+    text-align: center;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     align-items: center;
-    gap: 15px;
+    justify-content: center;
+    gap: 4px;
 }
 
-.post-battle-row label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-right: 0;
+.post-battle-unit .stat-box .icon {
+    font-size: 1.4em;
 }
 
-.post-battle-row label .icon {
-    font-size: 1.2em;
-}
+.post-battle-unit .stat-box.present .icon { color: var(--friendly-color); }
+.post-battle-unit .stat-box.kills .icon { color: var(--primary-color); }
+.post-battle-unit .stat-box.destroyed .icon { color: var(--danger-color); }
 
-.post-battle-row label.present .icon { color: var(--friendly-color); }
-.post-battle-row label.kills .icon { color: var(--primary-color); }
-.post-battle-row label.destroyed .icon { color: var(--danger-color); }
-
-.post-battle-row .kills-input {
-    width: 60px;
+.post-battle-unit .stat-box input,
+.post-battle-unit .stat-box select {
+    margin-top: 4px;
     background: #000;
     color: var(--text-color);
     border: 1px solid var(--primary-color);
     border-radius: 4px;
     padding: 2px 4px;
+}
+
+.post-battle-unit .stat-box .kills-input {
+    width: 60px;
+}
+
+.post-battle-unit .stat-box.scar {
+    gap: 5px;
 }
 
 .post-battle-unit .roll-btn {

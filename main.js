@@ -112,14 +112,31 @@ document.addEventListener('DOMContentLoaded', () => {
             unitDiv.className = 'post-battle-unit';
             unitDiv.dataset.unitId = unit.id;
             unitDiv.innerHTML = `
-                <h4><span class="unit-icon">✠</span>${unit.name}</h4>
-                <div class="post-battle-row">
-                    <label class="present"><span class="icon">🛡️</span><input type="checkbox" class="present-checkbox" checked> Présent</label>
-                    <label class="kills"><span class="icon">⚔️</span>Kills: <input type="number" class="kills-input" min="0" value="0"></label>
-                    <label class="destroyed"><span class="icon">☠️</span><input type="checkbox" class="destroyed-checkbox"> Détruite</label>
-                    <button type="button" class="roll-btn hidden">Jet D6</button>
-                    <span class="roll-result"></span>
-                    <select class="scar-select hidden">${getBattleScarOptionsHtml(player)}</select>
+                <div class="unit-header">
+                    <span class="unit-icon">✠</span>
+                    <h4>${unit.name}</h4>
+                </div>
+                <div class="post-battle-grid">
+                    <div class="stat-box present">
+                        <span class="icon">🛡️</span>
+                        <span>Présent</span>
+                        <input type="checkbox" class="present-checkbox" checked>
+                    </div>
+                    <div class="stat-box kills">
+                        <span class="icon">⚔️</span>
+                        <span>Kills</span>
+                        <input type="number" class="kills-input" min="0" value="0">
+                    </div>
+                    <div class="stat-box destroyed">
+                        <span class="icon">☠️</span>
+                        <span>Détruite</span>
+                        <input type="checkbox" class="destroyed-checkbox">
+                    </div>
+                    <div class="stat-box scar">
+                        <button type="button" class="roll-btn hidden">Jet D6</button>
+                        <span class="roll-result"></span>
+                        <select class="scar-select hidden">${getBattleScarOptionsHtml(player)}</select>
+                    </div>
                 </div>
             `;
 
