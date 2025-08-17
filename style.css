@@ -1284,3 +1284,25 @@ label {
     color: var(--warning-color);
     font-weight: bold;
 }
+
+/* --- Post-battle modal styles --- */
+.post-battle-unit {
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 0;
+}
+
+.post-battle-unit h4 {
+    margin: 0 0 5px 0;
+}
+
+.post-battle-unit label {
+    margin-right: 10px;
+}
+
+.post-battle-unit .roll-btn {
+    margin-left: 5px;
+}
+
+.post-battle-unit .scar-select {
+    margin-left: 5px;
+}

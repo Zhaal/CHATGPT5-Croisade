@@ -36,6 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const pvpCombatModal = document.getElementById('pvp-combat-modal');
     const rulesModal = document.getElementById('rules-modal');
     const planetBonusModal = document.getElementById('planet-bonus-modal');
+
+    const postBattleModal = document.getElementById('post-battle-modal');
+    const postBattleUnitsContainer = document.getElementById('post-battle-units');
+    const postBattleSaveBtn = document.getElementById('post-battle-save-btn');
+    const markHonorSelect = document.getElementById('mark-honor-select');
     
     const actionLogContainer = document.getElementById('action-log-container');
     const actionLogHeader = document.getElementById('action-log-header');
@@ -75,6 +80,144 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return '';
     }
+
+    function getBattleScarOptionsHtml(player) {
+        let options = '<option value="">Choisir une cicatrice...</option>';
+        if (player && player.faction === 'Tyranids' && tyranidCrusadeRules.battleScars) {
+            options += '<optgroup label="Tyranid: Non-SYNAPSE (D6)">';
+            tyranidCrusadeRules.battleScars.nonSynapse.forEach(scar => {
+                options += `<option value="${scar.name}">${scar.roll}: ${scar.name}</option>`;
+            });
+            options += '</optgroup>';
+            options += '<optgroup label="Tyranid: SYNAPSE (D6)">';
+            tyranidCrusadeRules.battleScars.synapse.forEach(scar => {
+                options += `<option value="${scar.name}">${scar.roll}: ${scar.name}</option>`;
+            });
+            options += '</optgroup>';
+        } else {
+            crusadeRules.battleScars.forEach(scar => {
+                options += `<option value="${scar.name}">${scar.name}</option>`;
+            });
+        }
+        return options;
+    }
+
+    function openPostBattleModal(player) {
+        if (!player) return;
+        postBattleModal.dataset.playerId = player.id;
+        postBattleUnitsContainer.innerHTML = '';
+
+        (player.units || []).forEach(unit => {
+            const unitDiv = document.createElement('div');
+            unitDiv.className = 'post-battle-unit';
+            unitDiv.dataset.unitId = unit.id;
+            unitDiv.innerHTML = `
+                <h4>${unit.name}</h4>
+                <label><input type="checkbox" class="present-checkbox"> Présent</label>
+                <label>Kills: <input type="number" class="kills-input" min="0" value="0" style="width:60px;"></label>
+                <label><input type="checkbox" class="destroyed-checkbox"> Détruite</label>
+                <button type="button" class="roll-btn hidden">Jet D6</button>
+                <span class="roll-result" style="margin-left:5px;"></span>
+                <select class="scar-select hidden">${getBattleScarOptionsHtml(player)}</select>
+            `;
+
+            const destroyedChk = unitDiv.querySelector('.destroyed-checkbox');
+            const rollBtn = unitDiv.querySelector('.roll-btn');
+            const scarSelect = unitDiv.querySelector('.scar-select');
+            const rollResult = unitDiv.querySelector('.roll-result');
+
+            destroyedChk.addEventListener('change', () => {
+                if (destroyedChk.checked) {
+                    rollBtn.classList.remove('hidden');
+                } else {
+                    rollBtn.classList.add('hidden');
+                    rollResult.textContent = '';
+                    scarSelect.classList.add('hidden');
+                    scarSelect.value = '';
+                }
+            });
+
+            rollBtn.addEventListener('click', () => {
+                const roll = Math.floor(Math.random() * 6) + 1;
+                rollResult.textContent = `Résultat: ${roll}`;
+                if (roll === 1) {
+                    scarSelect.classList.remove('hidden');
+                } else {
+                    scarSelect.classList.add('hidden');
+                    scarSelect.value = '';
+                }
+            });
+
+            postBattleUnitsContainer.appendChild(unitDiv);
+        });
+
+        markHonorSelect.innerHTML = '<option value="">-- Choisir une unité --</option>';
+        (player.units || []).forEach(unit => {
+            markHonorSelect.innerHTML += `<option value="${unit.id}">${unit.name}</option>`;
+        });
+
+        openModal(postBattleModal);
+    }
+
+    postBattleModal.querySelector('.close-btn').addEventListener('click', () => closeModal(postBattleModal));
+
+    postBattleSaveBtn.addEventListener('click', () => {
+        const player = campaignData.players.find(p => p.id === postBattleModal.dataset.playerId);
+        if (!player) return;
+
+        postBattleUnitsContainer.querySelectorAll('.post-battle-unit').forEach(div => {
+            const unitId = div.dataset.unitId;
+            const unit = player.units.find(u => u.id === unitId);
+            if (!unit) return;
+
+            const present = div.querySelector('.present-checkbox').checked;
+            const kills = parseInt(div.querySelector('.kills-input').value) || 0;
+            const destroyed = div.querySelector('.destroyed-checkbox').checked;
+            const rollText = div.querySelector('.roll-result').textContent;
+            const rollMatch = rollText.match(/\d+/);
+            const roll = rollMatch ? parseInt(rollMatch[0]) : null;
+            const scarName = div.querySelector('.scar-select').value;
+
+            const prevXp = unit.xp || 0;
+            if (present) {
+                unit.xp = (unit.xp || 0) + 1;
+                logAction(player.id, `<b>${unit.name}</b> a participé à la bataille (+1 XP).`, 'info', '🎖️');
+            }
+            if (kills > 0) {
+                unit.kills = (unit.kills || 0) + kills;
+                logAction(player.id, `<b>${unit.name}</b> a réalisé ${kills} destructions.`, 'info', '☠️');
+            }
+            if (destroyed && roll === 1 && scarName) {
+                const desc = findUpgradeDescription ? findUpgradeDescription(scarName) : '';
+                unit.battleScars = (unit.battleScars || '').trim() + `\n- ${scarName}${desc ? ': ' + desc : ''}`;
+                logAction(player.id, `<b>${unit.name}</b> a subi la cicatrice <i>${scarName}</i>.`, 'info', '💥');
+            }
+            const newRank = getRankFromXp(unit.xp);
+            if (newRank !== getRankFromXp(prevXp)) {
+                showNotification(`${unit.name} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
+            }
+        });
+
+        const honourUnitId = markHonorSelect.value;
+        if (honourUnitId) {
+            const honouredUnit = player.units.find(u => u.id === honourUnitId);
+            if (honouredUnit) {
+                const prevXp = honouredUnit.xp || 0;
+                honouredUnit.xp = prevXp + 3;
+                honouredUnit.markedForGlory = (honouredUnit.markedForGlory || 0) + 1;
+                logAction(player.id, `<b>${honouredUnit.name}</b> a été mis à l'honneur (+3 XP).`, 'info', '🏅');
+                const newRank = getRankFromXp(honouredUnit.xp);
+                if (newRank !== getRankFromXp(prevXp)) {
+                    showNotification(`${honouredUnit.name} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
+                }
+            }
+        }
+
+        saveData();
+        renderPlayerDetail();
+        closeModal(postBattleModal);
+        showNotification('Résultats de bataille appliqués.', 'success');
+    });
 
     //======================================================================
     //  GESTION DES ÉVÉNEMENTS PRINCIPAUX
@@ -1399,6 +1542,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderPlayerDetail();
             }
             showNotification("Résultat de la bataille enregistré.", "success");
+            openPostBattleModal(attacker);
     
         } finally {
             okBtn.textContent = originalOkText;
