@@ -1299,12 +1299,19 @@ label {
     margin-right: 10px;
 }
 
+.post-battle-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
 .post-battle-unit .roll-btn {
-    margin-left: 5px;
+    margin-left: 0;
 }
 
 .post-battle-unit .scar-select {
-    margin-left: 5px;
+    margin-left: 0;
 }
 
 .blink {
