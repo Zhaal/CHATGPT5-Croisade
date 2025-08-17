@@ -112,11 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
             unitDiv.className = 'post-battle-unit';
             unitDiv.dataset.unitId = unit.id;
             unitDiv.innerHTML = `
-                <h4>${unit.name}</h4>
+                <h4><span class="unit-icon">✠</span>${unit.name}</h4>
                 <div class="post-battle-row">
-                    <label><input type="checkbox" class="present-checkbox" checked> Présent</label>
-                    <label>Kills: <input type="number" class="kills-input" min="0" value="0" style="width:60px;"></label>
-                    <label><input type="checkbox" class="destroyed-checkbox"> Détruite</label>
+                    <label class="present"><span class="icon">🛡️</span><input type="checkbox" class="present-checkbox" checked> Présent</label>
+                    <label class="kills"><span class="icon">⚔️</span>Kills: <input type="number" class="kills-input" min="0" value="0"></label>
+                    <label class="destroyed"><span class="icon">☠️</span><input type="checkbox" class="destroyed-checkbox"> Détruite</label>
                     <button type="button" class="roll-btn hidden">Jet D6</button>
                     <span class="roll-result"></span>
                     <select class="scar-select hidden">${getBattleScarOptionsHtml(player)}</select>
