@@ -315,6 +315,19 @@ label {
     border: 1px solid #2475a7;
 }
 
+.hive-bonus-indicator {
+    display: inline-block;
+    background-color: var(--friendly-color);
+    color: #111;
+    padding: 3px 7px;
+    margin-left: 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.85em;
+    line-height: 1;
+    vertical-align: middle;
+}
+
 #goals-notes {
     width: 100%;
     min-height: 80px;
