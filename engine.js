@@ -696,33 +696,34 @@ function checkAndApplyWeeklyRpBonus(player) {
     // Pour les tests, on peut réduire le délai
     // const sevenDaysInMillis = 60 * 1000; // 1 minute pour tester
     const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
-    const lastBonusTime = player.lastRpBonusTimestamp || 0;
 
-    if (now - lastBonusTime < sevenDaysInMillis) {
-        return; // Pas encore l'heure du bonus.
-    }
-
-    let agriWorldsCount = 0;
+    let bonusCount = 0;
+    let updated = false;
     campaignData.systems.forEach(system => {
         system.planets.forEach(planet => {
             if (planet.owner === player.id && planet.type === 'Agri-monde') {
-                agriWorldsCount++;
+                if (!planet.agriWorldCaptureTimestamp) {
+                    planet.agriWorldCaptureTimestamp = now;
+                    updated = true;
+                } else if (now - planet.agriWorldCaptureTimestamp >= sevenDaysInMillis) {
+                    bonusCount++;
+                    planet.agriWorldCaptureTimestamp = now;
+                    updated = true;
+                }
             }
         });
     });
 
-    // Mettre à jour le timestamp pour éviter de vérifier à chaque fois.
-    player.lastRpBonusTimestamp = now;
-
-    if (agriWorldsCount > 0) {
-        player.requisitionPoints += agriWorldsCount;
-
-        const message = `a reçu <b>${agriWorldsCount} PR</b> en bonus hebdomadaire pour ses <b>${agriWorldsCount} Agri-mondes</b>.`;
+    if (bonusCount > 0) {
+        player.requisitionPoints += bonusCount;
+        const message = `a reçu <b>${bonusCount} PR</b> en bonus hebdomadaire pour ses Agri-mondes.`;
         logAction(player.id, message, 'conquest', '🌾');
-        showNotification(`Bonus de <b>${agriWorldsCount} PR</b> reçu pour vos Agri-mondes !`, 'success');
+        showNotification(`Bonus de <b>${bonusCount} PR</b> reçu pour vos Agri-mondes !`, 'success');
     }
 
-    saveData();
+    if (updated || bonusCount > 0) {
+        saveData();
+    }
 }
 
 /**

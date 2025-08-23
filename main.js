@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     postBattleModal.querySelector('.close-btn').addEventListener('click', () => closeModal(postBattleModal));
 
-    postBattleSaveBtn.addEventListener('click', () => {
+    postBattleSaveBtn.addEventListener('click', async () => {
         const player = campaignData.players.find(p => p.id === postBattleModal.dataset.playerId);
         if (!player) return;
 
@@ -269,12 +269,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (found) { planet = found; system = sys; break; }
             }
             if (planet && planet.pendingOwner === player.id) {
+                const oldOwner = planet.owner;
                 planet.owner = planet.pendingOwner;
                 delete planet.pendingOwner;
                 planet.defense = 0;
+
                 if (planet.type === 'Agri-monde') {
                     planet.agriWorldCaptureTimestamp = new Date().getTime();
                 }
+
+                removeHiveWorldBonusFromPlanet(planet, oldOwner);
+
+                if (planet.type === 'Monde Ruche') {
+                    const eligibleUnits = (player.units || []).filter(u => u.role !== 'Personnage' && u.role !== 'Hero Epique');
+                    if (eligibleUnits.length > 0) {
+                        const selectedUnitId = await showUnitChoiceModal(
+                            'Bonus de Monde Ruche',
+                            "Sélectionnez une unité non-personnage pour bénéficier d'une réduction de 50% lors du doublement de son effectif.",
+                            eligibleUnits
+                        );
+                        if (selectedUnitId) {
+                            const unit = player.units.find(u => u.id === selectedUnitId);
+                            if (unit) {
+                                unit.hivePlanetId = planet.id;
+                                planet.hiveBonusUnitId = unit.id;
+                            }
+                        }
+                    }
+                }
+
                 logAction(player.id, `<b>Capture validée !</b> <b>${planet.name}</b> est désormais sous votre contrôle.`, 'conquest', '🏆');
                 if (system) {
                     renderPlanetarySystem(system.id);
@@ -531,7 +554,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 discoveredSystemIds: [newSystemId],
                 probedSystemIds: [],
                 actionLog: [],
-                lastRpBonusTimestamp: null
             };
 
             if (faction === 'Adepta Sororitas') {
@@ -1134,6 +1156,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (oldOwner !== newOwnerId) {
             removeHiveWorldBonusFromPlanet(planet, oldOwner);
+        }
+
+        if (oldOwner !== newOwnerId) {
+            if (planet.type === 'Agri-monde' && newOwnerId !== 'neutral') {
+                planet.agriWorldCaptureTimestamp = Date.now();
+            } else {
+                planet.agriWorldCaptureTimestamp = null;
+            }
         }
 
         if (oldOwner === 'neutral' && newOwnerId !== 'neutral') {
