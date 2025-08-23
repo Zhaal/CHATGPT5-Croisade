@@ -1198,6 +1198,12 @@ label {
 @media (max-width: 480px) {
     h1 { font-size: 1.5em; }
     .campaign-controls { display: flex; flex-direction: column; }
+    .management-controls { flex-direction: column; }
+    #player-list { grid-template-columns: 1fr; }
+    .player-card-actions { flex-direction: column; }
+    .player-card-actions button { width: 100%; }
+    .player-info-grid { grid-template-columns: 1fr; }
+    .container { padding: 10px; }
     #notification-container {
         width: 100%;
         bottom: 0;
