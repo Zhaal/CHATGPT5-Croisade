@@ -726,6 +726,55 @@ function checkAndApplyWeeklyRpBonus(player) {
     }
 }
 
+function showMissionChoiceModal(missions) {
+    return new Promise(resolve => {
+        const modal = document.getElementById('mission-choice-modal');
+        const select = document.getElementById('mission-choice-select');
+        const desc = document.getElementById('mission-choice-desc');
+        const okBtn = document.getElementById('mission-choice-ok-btn');
+        const cancelBtn = document.getElementById('mission-choice-cancel-btn');
+        const closeBtn = modal.querySelector('.close-btn');
+
+        select.innerHTML = '';
+        if (missions && missions.length > 0) {
+            missions.forEach(m => {
+                const option = document.createElement('option');
+                option.value = m.id;
+                option.textContent = m.name;
+                select.appendChild(option);
+            });
+            select.value = missions[0].id;
+            desc.textContent = missions[0].bonus;
+            okBtn.disabled = false;
+        } else {
+            desc.textContent = 'Aucune mission disponible';
+            okBtn.disabled = true;
+        }
+
+        select.onchange = () => {
+            const mission = missions.find(m => m.id === select.value);
+            desc.textContent = mission ? mission.bonus : '';
+        };
+
+        openModal(modal);
+
+        const closeAndResolve = (value) => {
+            closeModal(modal);
+            okBtn.removeEventListener('click', okListener);
+            cancelBtn.removeEventListener('click', cancelListener);
+            closeBtn.removeEventListener('click', cancelListener);
+            resolve(value);
+        };
+
+        const okListener = () => closeAndResolve(select.value);
+        const cancelListener = () => closeAndResolve(null);
+
+        okBtn.addEventListener('click', okListener, { once: true });
+        cancelBtn.addEventListener('click', cancelListener, { once: true });
+        closeBtn.addEventListener('click', cancelListener, { once: true });
+    });
+}
+
 /**
  * Calcule le bonus de limite de Véhicules/Monstres pour les Mondes Forges.
  * @param {object} player - L'objet joueur à vérifier.
