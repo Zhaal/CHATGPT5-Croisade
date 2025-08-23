@@ -681,7 +681,7 @@ function initializeDeathGuardGameplay() {
     
         const confirmed = await showConfirm(
             "Bienfait de Nurgle",
-            `Refuser l'Honneur de Bataille standard pour lancer un dé sur la table des Bienfaits de Nurgle pour <b>${unit.name}</b> ?`
+            `Refuser l'Honneur de Bataille standard pour lancer un dé sur la table des Bienfaits de Nurgle pour <b>${getUnitDisplayName(unit)}</b> ?`
         );
     
         if (confirmed) {
@@ -697,10 +697,10 @@ function initializeDeathGuardGameplay() {
                 // Le bienfait est un doublon, appliquer la Dégénérescence
                 await showConfirm(
                     "Dégénérescence !",
-                    `Résultat du jet : <b>${randomBoon.name}</b>. L'unité possède déjà ce bienfait !<br><br><b>${unit.name}</b> succombe à la Dégénérescence et devient une unité de <b>Rejetons du Chaos de Nurgle</b>. Elle conserve son XP, ses Honneurs et ses Séquelles.`
+                    `Résultat du jet : <b>${randomBoon.name}</b>. L'unité possède déjà ce bienfait !<br><br><b>${getUnitDisplayName(unit)}</b> succombe à la Dégénérescence et devient une unité de <b>Rejetons du Chaos de Nurgle</b>. Elle conserve son XP, ses Honneurs et ses Séquelles.`
                 );
                 
-                const oldName = unit.name;
+                const oldName = getUnitDisplayName(unit);
                 unit.name = "Rejetons du Chaos de Nurgle";
                 unit.power = 80; // Coût des Rejetons DG
                 unit.role = "Bête";
@@ -714,8 +714,8 @@ function initializeDeathGuardGameplay() {
                 unit.crusadePoints = (unit.crusadePoints || 0) + 1;
                 document.getElementById('unit-crusade-points').value = unit.crusadePoints;
         
-                logAction(player.id, `<b>${unit.name}</b> a reçu le bienfait de Nurgle : <i>${randomBoon.name}</i>.`, 'info', '☣️');
-                showNotification(`${unit.name} a reçu le bienfait : ${randomBoon.name} !`, 'success');
+                logAction(player.id, `<b>${getUnitDisplayName(unit)}</b> a reçu le bienfait de Nurgle : <i>${randomBoon.name}</i>.`, 'info', '☣️');
+                showNotification(`${getUnitDisplayName(unit)} a reçu le bienfait : ${randomBoon.name} !`, 'success');
             }
             
             saveData();

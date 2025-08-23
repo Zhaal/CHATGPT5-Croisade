@@ -336,8 +336,8 @@ async function showBiogenesisModal(player) {
                                     const targetUnit = player.units.find(u => u.id === chosenUnitId);
                                     if (targetUnit) {
                                         targetUnit.battleHonours = (targetUnit.battleHonours || "") + "\n- Biotrophe Rare (Réduction sur Héros Renommé)";
-                                        notificationMessage += `<br>Le statut de Biotrophe Rare a été assigné à <b>${targetUnit.name}</b>.`;
-                                        logMessage += ` Statut assigné à <b>${targetUnit.name}</b>.`;
+                                        notificationMessage += `<br>Le statut de Biotrophe Rare a été assigné à <b>${getUnitDisplayName(targetUnit)}</b>.`;
+                                        logMessage += ` Statut assigné à <b>${getUnitDisplayName(targetUnit)}</b>.`;
                                     }
                                 } else { wasBonusApplied = false; }
                             } else {
@@ -354,8 +354,8 @@ async function showBiogenesisModal(player) {
                                     const targetUnit = player.units.find(u => u.id === chosenUnitId);
                                     if (targetUnit) {
                                         targetUnit.xp = (targetUnit.xp || 0) + 3;
-                                        notificationMessage += `<br><b>${targetUnit.name}</b> a gagné +3 PX !`;
-                                        logMessage += ` L'unité <b>${targetUnit.name}</b> gagne +3 PX.`;
+                                        notificationMessage += `<br><b>${getUnitDisplayName(targetUnit)}</b> a gagné +3 PX !`;
+                                        logMessage += ` L'unité <b>${getUnitDisplayName(targetUnit)}</b> gagne +3 PX.`;
                                     }
                                 } else { wasBonusApplied = false; }
                             } else {

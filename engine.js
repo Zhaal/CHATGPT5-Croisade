@@ -92,6 +92,13 @@ function updateAdminModeUI() {
     if (toggleBtn) {
         toggleBtn.textContent = isAdminMode ? 'Mode Utilisateur' : 'Mode Admin';
     }
+    document.querySelectorAll('.admin-protected').forEach(el => {
+        el.classList.toggle('hidden', !isAdminMode);
+    });
+}
+
+function getUnitDisplayName(unit) {
+    return unit.nickname ? `${unit.name} (${unit.nickname})` : unit.name;
 }
 
 /**
@@ -422,7 +429,7 @@ function showUnitChoiceModal(title, text, unitList) {
             unitList.forEach(unit => {
                 const option = document.createElement('option');
                 option.value = unit.id; // Utiliser l'ID unique de l'unité
-                option.textContent = `${unit.name} (XP: ${unit.xp || 0})`;
+                option.textContent = `${getUnitDisplayName(unit)} (XP: ${unit.xp || 0})`;
                 select.appendChild(option);
             });
             okBtn.disabled = false;
