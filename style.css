@@ -1,26 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap');
-/* --- Police et Thème Général --- */
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Orbitron:wght@400;700&display=swap');
+/* --- Thème Général Warhammer 40K --- */
 :root {
-    --primary-color: #a37c27; /* Or/Bronze */
-    --friendly-color: #3cb371; /* Vert - Ajouté pour le statut "ami" */
-    --background-color: #1e1e1e;
-    --surface-color: #2a2a2a;
-    --text-color: #e0e0e0;
-    --text-muted-color: #888;
-    --border-color: #444;
-    --danger-color: #b33a3a;
-    --warning-color: #ffcc00; /* Jaune pour les systèmes neutres */
-    --probed-color: #3498db; /* NOUVEAU: Bleu pour les systèmes sondés */
-    --gateway-color: #ff8c00; /* NOUVEAU: Orange pour les portails */
+    --primary-color: #c9b037; /* Or impérial */
+    --secondary-color: #8b0000; /* Rouge sombre */
+    --friendly-color: #3cb371;
+    --background-color: #0a0a0a;
+    --surface-color: #1a1a1a;
+    --text-color: #e6e6e6;
+    --text-muted-color: #999;
+    --border-color: #333;
+    --danger-color: #9b1d20;
+    --warning-color: #ffbf00;
+    --probed-color: #3498db;
+    --gateway-color: #ff8c00;
 }
 
 body {
-    font-family: sans-serif;
-    background-color: #000;
-    background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png');
+    font-family: 'Orbitron', sans-serif;
+    background-color: var(--background-color);
+    background-image: radial-gradient(circle at top, #1a1a1a 0%, #000 100%), url('https://www.transparenttextures.com/patterns/asfalt-dark.png');
     color: var(--text-color);
     margin: 0;
-    padding: 20px;
+    padding: 0;
 }
 
 @keyframes title-pulse {
@@ -40,25 +41,24 @@ h1 {
 }
 
 h1, h2, h3 {
-    font-family: 'Metal Mania', 'Cinzel', serif;
+    font-family: 'UnifrakturMaguntia', cursive;
     color: var(--primary-color);
     text-transform: uppercase;
-    letter-spacing: 2.5px;
-    text-shadow: 1px 1px 2px black, 0 0 5px var(--primary-color);
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px var(--secondary-color);
 }
 
 h4 {
-     font-family: 'Cinzel', serif;
+     font-family: 'Orbitron', sans-serif;
 }
 
-.container {
+#command-interface.imperial-layout {
     max-width: 1200px;
     margin: 0 auto;
-    background-color: var(--surface-color);
+    background: linear-gradient(135deg, rgba(20,20,20,0.95) 0%, rgba(5,5,5,0.95) 100%);
     padding: 20px;
-    border: 3px solid #000;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.5);
-    border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='75' height='75'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23c0953c' offset='0%25'/%3E%3Cstop stop-color='%23a37c27' offset='50%25'/%3E%3Cstop stop-color='%237c5c1a' offset='100%25'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='transparent' stroke-width='10' stroke='url(%23g)'/%3E%3C/svg%3E") 10;
+    border: 3px solid var(--primary-color);
+    box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,215,0,0.1);
 }
 
 hr {
@@ -72,15 +72,32 @@ hr {
 }
 
 /* --- En-tête et Contrôles de Campagne --- */
-header {
+header.imperial-header {
     text-align: center;
     border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 15px;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.control-panel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.panel {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid var(--border-color);
+    padding: 20px;
     margin-bottom: 20px;
+    border-radius: 6px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.7);
 }
 
 .storage-warning {
-    background-color: #4d4432;
+    background-color: rgba(139,0,0,0.5);
     border: 1px solid var(--primary-color);
     padding: 10px;
     font-size: 0.9em;
@@ -97,22 +114,37 @@ header {
 }
 
 /* --- Boutons et Formulaires --- */
-button, .btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-    border: 1px solid #7c5c1a;
-    padding: 10px 15px;
-    cursor: pointer;
+button, .btn-primary, .btn-secondary, .btn-danger, .btn-icon {
+    font-family: 'Orbitron', sans-serif;
     text-transform: uppercase;
-    font-family: 'Cinzel', serif;
-    transition: background-color 0.2s;
-    border-radius: 3px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-button:hover, .btn-primary:hover {
-    background-color: #c0953c;
-    box-shadow: 0 0 10px #c0953c, 0 0 15px #c0953c;
+button, .btn-primary, .btn-icon {
+    background: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--primary-color);
+}
+
+.btn-secondary {
+    background: #333;
+    color: var(--text-color);
+    border: 1px solid var(--primary-color);
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: #fff;
+    border: 1px solid #600;
+}
+
+button:hover, .btn-primary:hover, .btn-secondary:hover, .btn-danger:hover, .btn-icon:hover {
     transform: translateY(-2px);
+    box-shadow: 0 0 10px var(--primary-color);
 }
 
 button:disabled {
@@ -120,21 +152,10 @@ button:disabled {
     cursor: not-allowed;
 }
 
-button.btn-secondary, .btn-secondary {
-    background-color: #555;
-    border-color: #333;
-}
-button.btn-secondary:hover {
-    background-color: #777;
+.btn-icon i {
+    margin-right: 5px;
 }
 
-button.btn-danger, .btn-danger {
-    background-color: var(--danger-color);
-    border-color: #8e2b2b;
-}
-button.btn-danger:hover {
-    background-color: #d14f4f;
-}
 
 input[type="text"], input[type="number"], select, textarea {
     width: 100%;
@@ -1213,13 +1234,13 @@ label {
 }
 @media (max-width: 480px) {
     h1 { font-size: 1.5em; }
-    .campaign-controls { display: flex; flex-direction: column; }
+    .control-panel { display: flex; flex-direction: column; }
     .management-controls { flex-direction: column; }
     #player-list { grid-template-columns: 1fr; }
     .player-card-actions { flex-direction: column; }
     .player-card-actions button { width: 100%; }
     .player-info-grid { grid-template-columns: 1fr; }
-    .container { padding: 10px; }
+    #command-interface { padding: 10px; }
     #notification-container {
         width: 100%;
         bottom: 0;
