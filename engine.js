@@ -101,6 +101,17 @@ function getUnitDisplayName(unit) {
     return unit.nickname ? `${unit.name} (${unit.nickname})` : unit.name;
 }
 
+function getPlanetById(planetId) {
+    for (const system of campaignData.systems) {
+        for (const planet of system.planets) {
+            if (planet.id === planetId) {
+                return planet;
+            }
+        }
+    }
+    return null;
+}
+
 /**
  * MODIFIÉ : Enregistre une action dans l'historique personnel d'un joueur.
  * @param {string} playerId - L'ID du joueur pour qui enregistrer l'action.
