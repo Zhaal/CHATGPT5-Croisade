@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (planet.type === 'Monde Ruche' && !planet.hiveBonusUnitId) {
                     const eligibleUnits = player.units.filter(u => u.role !== 'Personnage' && u.role !== 'Hero Epique');
                     if (eligibleUnits.length > 0) {
-                        const selectedUnitId = await showUnitChoiceModal(\`Bonus de Monde Ruche - ${planet.name}\`, 'Sélectionnez une unité (hors Personnages) qui bénéficiera d'une réduction pour doubler son effectif.', eligibleUnits);
+                        const selectedUnitId = await showUnitChoiceModal(`Bonus de Monde Ruche - ${planet.name}`, 'Sélectionnez une unité (hors Personnages) qui bénéficiera d\'une réduction pour doubler son effectif.', eligibleUnits);
                         if (selectedUnitId) {
                             const selectedUnit = player.units.find(u => u.id === selectedUnitId);
                             selectedUnit.hiveWorldPlanetId = planet.id;
@@ -359,6 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     saveData();
                     renderPlanetBonusModal(); // Refresh the modal to show the change
                 }
+            }
         } else if (target.classList.contains('assign-hive-bonus-btn')) {
             const planetId = target.dataset.planetId;
             const player = campaignData.players.find(p => p.id === mapViewingPlayerId);
@@ -380,13 +381,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 showNotification("Aucune unité éligible dans votre Ordre de Bataille.", 'warning');
                 return;
             }
-            const selectedUnitId = await showUnitChoiceModal(\`Choisir une unité pour ${planetToUpdate.name}\`, "Sélectionnez une unité (hors Personnages) pour lui attribuer ce bonus.", eligibleUnits);
+            const selectedUnitId = await showUnitChoiceModal(`Choisir une unité pour ${planetToUpdate.name}`, "Sélectionnez une unité (hors Personnages) pour lui attribuer ce bonus.", eligibleUnits);
             if (selectedUnitId) {
                 const selectedUnit = player.units.find(u => u.id === selectedUnitId);
                 if (selectedUnit) {
                     selectedUnit.hiveWorldPlanetId = planetToUpdate.id;
                     planetToUpdate.hiveBonusUnitId = selectedUnit.id;
-                    logAction(player.id, \`Le bonus de <b>${planetToUpdate.name}</b> a été assigné à <b>${getUnitDisplayName(selectedUnit)}</b>.\`, 'info', '🐝');
+                    logAction(player.id, `Le bonus de <b>${planetToUpdate.name}</b> a été assigné à <b>${getUnitDisplayName(selectedUnit)}</b>.`, 'info', '🐝');
                     saveData();
                     renderPlanetBonusModal();
                     if (activePlayerIndex === campaignData.players.findIndex(p => p.id === player.id) && !playerDetailView.classList.contains('hidden')) renderPlayerDetail();
