@@ -153,6 +153,9 @@ function logAction(playerId, message, type, icon = '📜') {
 
     saveData();
 
+
+/**
+ * Supprime le bonus de Monde Ruche d'une unité associée à la planète donnée.
     if (typeof renderActionLog === 'function') {
         renderActionLog();
     }
@@ -713,6 +716,22 @@ function checkAndApplyWeeklyRpBonus(player) {
 
     saveData();
 }
+
+/**
+ * Supprime le bonus de Monde Ruche d'une unité associée à la planète donnée.
+ * @param {object} planet - La planète à vérifier.
+ */
+function removeHiveWorldBonus(planet) {
+    if (!planet || !planet.hiveBonusUnitId) return;
+    campaignData.players.forEach(p => {
+        const unit = (p.units || []).find(u => u.id === planet.hiveBonusUnitId);
+        if (unit) {
+            delete unit.hiveWorldPlanetId;
+        }
+    });
+    delete planet.hiveBonusUnitId;
+}
+
 
 /**
  * Calcule le bonus de limite de Véhicules/Monstres pour les Mondes Forges.
