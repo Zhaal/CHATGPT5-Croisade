@@ -102,9 +102,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return options;
     }
 
-    function openPostBattleModal(player) {
+    function openPostBattleModal(player, planet = null) {
         if (!player) return;
         postBattleModal.dataset.playerId = player.id;
+        if (planet && planet.id) {
+            postBattleModal.dataset.planetId = planet.id;
+        } else {
+            delete postBattleModal.dataset.planetId;
+        }
         postBattleUnitsContainer.innerHTML = '';
 
         (player.units || []).forEach(unit => {
@@ -240,6 +245,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (newRank !== getRankFromXp(prevXp)) {
                     honouredUnit.pendingOptimization = true;
                     showNotification(`${honouredUnit.name} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
+                }
+            }
+        }
+
+        const planetId = postBattleModal.dataset.planetId;
+        if (planetId) {
+            let planet, system;
+            for (const sys of campaignData.systems) {
+                const found = sys.planets.find(p => p.id === planetId);
+                if (found) { planet = found; system = sys; break; }
+            }
+            if (planet && planet.pendingOwner === player.id) {
+                planet.owner = planet.pendingOwner;
+                delete planet.pendingOwner;
+                planet.defense = 0;
+                if (planet.type === 'Agri-monde') {
+                    planet.agriWorldCaptureTimestamp = new Date().getTime();
+                }
+                logAction(player.id, `<b>Capture validée !</b> <b>${planet.name}</b> est désormais sous votre contrôle.`, 'conquest', '🏆');
+                if (system) {
+                    renderPlanetarySystem(system.id);
                 }
             }
         }
@@ -1181,19 +1207,22 @@ document.addEventListener('DOMContentLoaded', () => {
     async function halvePlanetDefense() {
         const viewingPlayer = campaignData.players.find(p => p.id === mapViewingPlayerId);
         if (!viewingPlayer) { showNotification("Erreur : Joueur actif introuvable.", 'error'); return; }
-        if (viewingPlayer.requisitionPoints < 1) { showNotification("Pas assez de Points de Réquisition (1 RP requis).", 'warning'); return; }
 
         const systemId = document.getElementById('planet-system-id').value;
         const planetIndex = document.getElementById('planet-index').value;
         const system = campaignData.systems.find(s => s.id === systemId);
         const planet = system.planets[planetIndex];
+        const isWild = planet.type === 'Monde Sauvage';
+        const cost = isWild ? 0 : 1;
+        if (viewingPlayer.requisitionPoints < cost) { showNotification(`Pas assez de Points de Réquisition (${cost} RP requis).`, 'warning'); return; }
         const oldDefense = planet.defense;
         const newDefense = Math.floor(oldDefense / 2);
-
-        if (await showConfirm("Saboter les défenses", `Cette action coûtera <b>1 Point de Réquisition</b>. La défense passera de <b>${oldDefense}</b> à <b>${newDefense}</b>. Continuer ?`)) {
-            viewingPlayer.requisitionPoints--;
+        const costText = cost === 0 ? 'aucun PR' : '<b>1 Point de Réquisition</b>';
+        if (await showConfirm("Saboter les défenses", `Cette action coûtera ${costText}. La défense passera de <b>${oldDefense}</b> à <b>${newDefense}</b>. Continuer ?`)) {
+            viewingPlayer.requisitionPoints -= cost;
             planet.defense = newDefense;
-            logAction(viewingPlayer.id, `A saboté les défenses de <b>${planet.name}</b> pour 1 PR, les réduisant à ${newDefense}.`, 'info', '💣');
+            const logCostText = cost === 0 ? 'gratuitement' : 'pour 1 PR';
+            logAction(viewingPlayer.id, `A saboté les défenses de <b>${planet.name}</b> ${logCostText}, les réduisant à ${newDefense}.`, 'info', '💣');
             saveData();
             renderPlanetarySystem(system.id);
             if (activePlayerIndex === campaignData.players.findIndex(p => p.id === viewingPlayer.id) && !playerDetailView.classList.contains('hidden')) renderPlayerDetail();
@@ -1561,12 +1590,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (hasWon) {
                     attacker.battles.wins = (attacker.battles.wins || 0) + 1;
                     attacker.requisitionPoints++;
-                    planet.owner = attacker.id;
-                    planet.defense = 0;
-                    if (planet.type === 'Agri-monde') {
-                        planet.agriWorldCaptureTimestamp = new Date().getTime();
-                    }
-                    logAction(attacker.id, `<b>Victoire !</b> A conquis la planète PNJ <b>${planet.name}</b> (défendue par ${defender.name}). +1 PR.`, 'conquest', '🏆');
+                    planet.pendingOwner = attacker.id;
+                    logAction(attacker.id, `<b>Victoire !</b> A remporté la bataille sur la planète PNJ <b>${planet.name}</b> (défendue par ${defender.name}). +1 PR. Capture en attente des résultats de bataille.`, 'conquest', '🏆');
                 } else {
                     attacker.battles.losses = (attacker.battles.losses || 0) + 1;
                     attacker.requisitionPoints++;
@@ -1586,7 +1611,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderPlayerDetail();
             }
             showNotification("Résultat de la bataille enregistré.", "success");
-            openPostBattleModal(attacker);
+            openPostBattleModal(attacker, planet);
     
         } finally {
             okBtn.textContent = originalOkText;
@@ -1738,20 +1763,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } else { // --- Logique de conquête normale OU défaite du Tyranide ---
-                if (attackerWon) {
-                    attacker.battles.wins = (attacker.battles.wins || 0) + 1;
-                    defender.battles.losses = (defender.battles.losses || 0) + 1;
-                    
-                    const oldOwnerName = defender.name;
-                    planet.owner = attacker.id;
-                    if (planet.type === 'Agri-monde') {
-                        planet.agriWorldCaptureTimestamp = new Date().getTime();
-                    }
-                    logAction(attacker.id, `<b>Victoire !</b> Vous avez conquis la planète <b>${planet.name}</b> de <b>${oldOwnerName}</b>. +1 PR.`, 'conquest', '🏆');
-                    logAction(defender.id, `<b>Défaite.</b> Vous avez perdu la planète <b>${planet.name}</b> face à <b>${attacker.name}</b>. +1 PR.`, 'info', '⚔️');
-                    showNotification(`Victoire de ${attacker.name} ! La planète ${planet.name} est conquise.`, "success");
-        
-                } else { 
+            if (attackerWon) {
+                attacker.battles.wins = (attacker.battles.wins || 0) + 1;
+                defender.battles.losses = (defender.battles.losses || 0) + 1;
+
+                const oldOwnerName = defender.name;
+                planet.pendingOwner = attacker.id;
+                logAction(attacker.id, `<b>Victoire !</b> Vous avez remporté la bataille pour <b>${planet.name}</b> de <b>${oldOwnerName}</b>. +1 PR. Capture en attente des résultats de bataille.`, 'conquest', '🏆');
+                logAction(defender.id, `<b>Défaite.</b> Vous avez perdu la bataille pour <b>${planet.name}</b> face à <b>${attacker.name}</b>. +1 PR.`, 'info', '⚔️');
+                showNotification(`Victoire de ${attacker.name} ! Capture en attente sur ${planet.name}.`, "success");
+
+            } else {
                     defender.battles.wins = (defender.battles.wins || 0) + 1;
                     attacker.battles.losses = (attacker.battles.losses || 0) + 1;
         
@@ -1764,11 +1786,13 @@ document.addEventListener('DOMContentLoaded', () => {
             saveData();
             closeModal(pvpCombatModal);
             renderPlanetarySystem(system.id);
-    
+
             if (!playerDetailView.classList.contains('hidden')) {
                 renderPlayerDetail();
             }
-    
+
+            openPostBattleModal(attacker, planet);
+
         } finally {
             blindJumpBtn.textContent = originalBlindJumpText;
             probeBtn.textContent = originalProbeText;
