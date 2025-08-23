@@ -202,15 +202,11 @@ const renderOrderOfBattle = () => {
         const rank = getRankFromXp(unit.xp);
         const row = document.createElement('tr');
 
-        const isDoubled = unit.equipment && unit.equipment.includes('- Effectif doublé.');
+        const isDoubled = unit.equipment && unit.equipment.includes("- Effectif doublé.");
         const baseName = getUnitDisplayName(unit);
-        let displayName = baseName;
-        if (unit.hiveWorldPlanetId) {
-            displayName += ' <span class="hive-bonus-indicator">Ruche</span>';
-        }
-        if (isDoubled) {
-            displayName += ' <span class="doubled-indicator">x2</span>';
-        }
+        const displayName = isDoubled
+            ? `${baseName} <span class="doubled-indicator">x2</span>`
+            : baseName;
 
         const rankCell = unit.pendingOptimization
             ? `<span class="blink">${rank}</span> <span class="optimisation-disponible">(Optimisation disponible)</span>`
@@ -1063,32 +1059,6 @@ function renderPlanetBonusModal() {
         holySection.innerHTML += '<p>Vous ne contrôlez aucun Monde Saint.</p>';
     }
     contentDiv.appendChild(holySection);
-    contentDiv.appendChild(document.createElement('hr'));
-
-    // --- Section Monde Ruche ---
-    const hiveWorlds = allPlayerPlanets.filter(p => p.type === 'Monde Ruche');
-
-    const hiveSection = document.createElement('div');
-    hiveSection.className = 'bonus-section';
-    hiveSection.innerHTML = `<h4><span class="legend-color" data-type="Monde Ruche"></span> Mondes Ruches (${hiveWorlds.length})</h4>`;
-
-    if (hiveWorlds.length > 0) {
-        hiveWorlds.forEach(planet => {
-            let statusHtml;
-            if (planet.hiveBonusUnitId) {
-                const unit = player.units.find(u => u.id === planet.hiveBonusUnitId);
-                statusHtml = `Bonus assigné à : <strong style="color: var(--friendly-color);">${unit ? getUnitDisplayName(unit) : 'Unité inconnue'}</strong>`;
-            } else {
-                statusHtml = `<button class="btn-secondary assign-hive-bonus-btn" data-planet-id="${planet.id}">Attribuer le Bonus</button>`;
-            }
-            hiveSection.innerHTML += `<p><strong>${planet.name}</strong> (${planet.systemName}): ${statusHtml}</p>`;
-        });
-    } else {
-        hiveSection.innerHTML += '<p>Vous ne contrôlez aucun Monde Ruche.</p>';
-    }
-    contentDiv.appendChild(hiveSection);
-
-    contentDiv.appendChild(document.createElement('hr'));
 
 
     // --- Logique du Timer ---

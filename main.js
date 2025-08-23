@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     postBattleModal.querySelector('.close-btn').addEventListener('click', () => closeModal(postBattleModal));
 
-    postBattleSaveBtn.addEventListener('click', async () => {
+    postBattleSaveBtn.addEventListener('click', () => {
         const player = campaignData.players.find(p => p.id === postBattleModal.dataset.playerId);
         if (!player) return;
 
@@ -257,10 +257,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (found) { planet = found; system = sys; break; }
             }
             if (planet && planet.pendingOwner === player.id) {
-                const oldOwner = planet.owner;
-                if (planet.hiveBonusUnitId && oldOwner !== player.id) {
-                    removeHiveWorldBonus(planet);
-                }
                 planet.owner = planet.pendingOwner;
                 delete planet.pendingOwner;
                 planet.defense = 0;
@@ -268,25 +264,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     planet.agriWorldCaptureTimestamp = new Date().getTime();
                 }
                 logAction(player.id, `<b>Capture validée !</b> <b>${planet.name}</b> est désormais sous votre contrôle.`, 'conquest', '🏆');
-                if (planet.type === 'Monde Ruche' && !planet.hiveBonusUnitId) {
-                    const eligibleUnits = player.units.filter(u => u.role !== 'Personnage' && u.role !== 'Hero Epique');
-                    if (eligibleUnits.length > 0) {
-                        const selectedUnitId = await showUnitChoiceModal(\`Bonus de Monde Ruche - ${planet.name}\`, 'Sélectionnez une unité (hors Personnages) qui bénéficiera d'une réduction pour doubler son effectif.', eligibleUnits);
-                        if (selectedUnitId) {
-                            const selectedUnit = player.units.find(u => u.id === selectedUnitId);
-                            selectedUnit.hiveWorldPlanetId = planet.id;
-                            planet.hiveBonusUnitId = selectedUnitId;
-                            logAction(player.id, `<b>${getUnitDisplayName(selectedUnit)}</b> bénéficie du bonus de <b>${planet.name}</b>.`, 'info', '🐝');
-                        }
-                    } else {
-                        showNotification("Aucune unité non-personnage disponible pour le bonus de Monde Ruche.", 'warning');
-                    }
-                }
                 if (system) {
                     renderPlanetarySystem(system.id);
                 }
             }
         }
+
         saveData();
         renderPlayerDetail();
         closeModal(postBattleModal);
@@ -358,38 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     logAction(player.id, `La relique de <b>${planetToUpdate.name}</b> a été assignée à <b>${getUnitDisplayName(selectedUnit)}</b>.`, 'info', '✨');
                     saveData();
                     renderPlanetBonusModal(); // Refresh the modal to show the change
-                }
-        } else if (target.classList.contains('assign-hive-bonus-btn')) {
-            const planetId = target.dataset.planetId;
-            const player = campaignData.players.find(p => p.id === mapViewingPlayerId);
-            if (!player) return;
-            let planetToUpdate;
-            for (const system of campaignData.systems) {
-                const foundPlanet = system.planets.find(p => p.id === planetId);
-                if (foundPlanet) {
-                    planetToUpdate = foundPlanet;
-                    break;
-                }
-            }
-            if (!planetToUpdate) {
-                showNotification("Erreur : Planète non trouvée.", 'error');
-                return;
-            }
-            const eligibleUnits = player.units.filter(u => u.role !== 'Personnage' && u.role !== 'Hero Epique');
-            if (eligibleUnits.length === 0) {
-                showNotification("Aucune unité éligible dans votre Ordre de Bataille.", 'warning');
-                return;
-            }
-            const selectedUnitId = await showUnitChoiceModal(\`Choisir une unité pour ${planetToUpdate.name}\`, "Sélectionnez une unité (hors Personnages) pour lui attribuer ce bonus.", eligibleUnits);
-            if (selectedUnitId) {
-                const selectedUnit = player.units.find(u => u.id === selectedUnitId);
-                if (selectedUnit) {
-                    selectedUnit.hiveWorldPlanetId = planetToUpdate.id;
-                    planetToUpdate.hiveBonusUnitId = selectedUnit.id;
-                    logAction(player.id, \`Le bonus de <b>${planetToUpdate.name}</b> a été assigné à <b>${getUnitDisplayName(selectedUnit)}</b>.\`, 'info', '🐝');
-                    saveData();
-                    renderPlanetBonusModal();
-                    if (activePlayerIndex === campaignData.players.findIndex(p => p.id === player.id) && !playerDetailView.classList.contains('hidden')) renderPlayerDetail();
                 }
             }
         }
@@ -731,21 +682,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('double-unit-cost-btn').addEventListener('click', () => {
         const unitPowerInput = document.getElementById('unit-power');
         const currentCost = parseInt(unitPowerInput.value) || 0;
-        let multiplier = 2;
-        const unitId = document.getElementById('unit-id').value;
-        if (unitId) {
-            const player = campaignData.players[activePlayerIndex];
-            const unit = player.units.find(u => u.id === unitId);
-            if (unit && unit.hiveWorldPlanetId) {
-                multiplier = 1.5;
-            }
-        }
-        unitPowerInput.value = Math.ceil(currentCost * multiplier);
+        unitPowerInput.value = currentCost * 2;
+    
         const equipmentTextarea = document.getElementById('unit-equipment');
         const note = "\n- Effectif doublé.";
         if (!equipmentTextarea.value.includes(note)) {
             equipmentTextarea.value = (equipmentTextarea.value || '').trim() + note;
         }
+    
         unitPowerInput.dispatchEvent(new Event('change', { bubbles: true }));
         equipmentTextarea.dispatchEvent(new Event('change', { bubbles: true }));
     });
@@ -1131,12 +1075,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const oldOwner = planet.owner;
     
         const newOwnerId = document.getElementById('planet-owner-select').value;
-        const newType = document.getElementById('planet-type-select').value;
-        planet.type = newType;
+        planet.type = document.getElementById('planet-type-select').value;
         planet.name = document.getElementById('planet-name-input').value.trim() || planet.name;
-        if (planet.hiveBonusUnitId && (oldOwner !== newOwnerId || newType !== 'Monde Ruche')) {
-            removeHiveWorldBonus(planet);
-        }
         planet.owner = newOwnerId;
         planet.defense = (planet.owner === 'neutral') ? parseInt(document.getElementById('planet-defense-input').value) || 0 : 0;
     
@@ -1170,9 +1110,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (await showConfirm("Randomiser la planète", "Cette action coûtera <b>2 Points de Réquisition</b>. Continuer ?")) {
             viewingPlayer.requisitionPoints -= 2;
             planet.type = getWeightedRandomPlanetType();
-            if (planet.hiveBonusUnitId && planet.type !== 'Monde Ruche') {
-                removeHiveWorldBonus(planet);
-            }
             logAction(viewingPlayer.id, `A randomisé la planète <b>${planet.name}</b> pour 2 PR. Nouveau type : ${planet.type}.`, 'info', '🎲');
             saveData();
             renderPlanetarySystem(system.id);
@@ -1589,7 +1526,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             attacker.tyranidData.biomassPoints += biomassGained;
                             attacker.requisitionPoints += rpGained;
 
-                        if (planet.hiveBonusUnitId) removeHiveWorldBonus(planet);
                             planet.owner = 'neutral';
                             planet.name = `${planet.name.replace(' (Dévorée)', '')} (Dévorée)`;
                             planet.defense = 0;
@@ -1760,7 +1696,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         attacker.tyranidData.biomassPoints += biomassGained;
                         attacker.requisitionPoints += rpGained;
-                        if (planet.hiveBonusUnitId) removeHiveWorldBonus(planet);
 
                         planet.owner = 'neutral';
                         planet.name = `${planet.name.replace(' (Dévorée)', '')} (Dévorée)`;
