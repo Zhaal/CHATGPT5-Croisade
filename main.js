@@ -831,6 +831,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
+    const updateDoubleCostButtonState = () => {
+        const equipmentTextarea = document.getElementById('unit-equipment');
+        const doubleBtn = document.getElementById('double-unit-cost-btn');
+        const note = '- Effectif doublé.';
+        if (equipmentTextarea.value.includes(note)) {
+            doubleBtn.textContent = '÷2';
+            doubleBtn.title = "Annuler le doublement du coût";
+        } else {
+            doubleBtn.textContent = 'x2';
+            doubleBtn.title = "Doubler le coût et la taille de l'unité";
+        }
+    };
+
     const openUnitModal = () => {
         unitForm.reset();
         document.getElementById('unit-id').value = '';
@@ -838,50 +851,59 @@ document.addEventListener('DOMContentLoaded', () => {
         unitForm.dataset.initialGlory = "0";
         document.getElementById('unit-marked-for-glory').value = 0;
         document.getElementById('unit-rank-display').textContent = getRankFromXp(0);
-        
-        populateUnitSelector(); 
+
+        populateUnitSelector();
         populateUpgradeSelectors();
-    
+
         const player = campaignData.players[activePlayerIndex];
-        
+
         const degenerateBtn = document.getElementById('degenerate-unit-btn');
         if (player && player.faction === 'Death Guard') {
             degenerateBtn.classList.remove('hidden');
         } else {
             degenerateBtn.classList.add('hidden');
         }
-        
+
         updateUnitModalForTyranids(null, player);
-    
+
+        document.getElementById('unit-power').dataset.originalCost = '';
+        updateDoubleCostButtonState();
+
         openModal(unitModal);
     };
 
     document.getElementById('double-unit-cost-btn').addEventListener('click', () => {
         const unitPowerInput = document.getElementById('unit-power');
+        const equipmentTextarea = document.getElementById('unit-equipment');
+        const note = '- Effectif doublé.';
         const currentCost = parseInt(unitPowerInput.value) || 0;
 
-        let newCost = currentCost * 2;
-        const player = campaignData.players[activePlayerIndex];
-        const unit = player && editingUnitIndex > -1 ? player.units[editingUnitIndex] : null;
+        if (equipmentTextarea.value.includes(note)) {
+            const original = parseInt(unitPowerInput.dataset.originalCost || 0);
+            unitPowerInput.value = original || Math.round(currentCost / 2);
+            unitPowerInput.dataset.originalCost = '';
+            equipmentTextarea.value = equipmentTextarea.value.replace('\n' + note, '').replace(note, '').trim();
+        } else {
+            unitPowerInput.dataset.originalCost = currentCost;
+            let newCost = currentCost * 2;
+            const player = campaignData.players[activePlayerIndex];
+            const unit = player && editingUnitIndex > -1 ? player.units[editingUnitIndex] : null;
 
-        if (unit && unit.hivePlanetId) {
-            newCost = Math.round(currentCost * 1.5);
-            const planet = getPlanetById(unit.hivePlanetId);
-            if (planet && planet.hiveBonusUnitId === unit.id) {
-                delete planet.hiveBonusUnitId;
+            if (unit && unit.hivePlanetId) {
+                newCost = Math.round(currentCost * 1.5);
+                const planet = getPlanetById(unit.hivePlanetId);
+                if (planet && planet.hiveBonusUnitId === unit.id) {
+                    delete planet.hiveBonusUnitId;
+                }
+                delete unit.hivePlanetId;
+                showNotification('Bonus de Monde Ruche utilisé : coût doublé réduit de 50%.', 'success');
             }
-            delete unit.hivePlanetId;
-            showNotification('Bonus de Monde Ruche utilisé : coût doublé réduit de 50%.', 'success');
+
+            unitPowerInput.value = newCost;
+            equipmentTextarea.value = (equipmentTextarea.value || '').trim() + '\n' + note;
         }
 
-        unitPowerInput.value = newCost;
-
-        const equipmentTextarea = document.getElementById('unit-equipment');
-        const note = "\n- Effectif doublé.";
-        if (!equipmentTextarea.value.includes(note)) {
-            equipmentTextarea.value = (equipmentTextarea.value || '').trim() + note;
-        }
-
+        updateDoubleCostButtonState();
         unitPowerInput.dispatchEvent(new Event('change', { bubbles: true }));
         equipmentTextarea.dispatchEvent(new Event('change', { bubbles: true }));
     });
@@ -918,9 +940,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             document.getElementById('unit-id').value = editingUnitIndex;
             document.getElementById('unit-rank-display').textContent = getRankFromXp(unit.xp || 0);
-            
+
             updateUnitModalForTyranids(unit, player);
             populateUpgradeSelectors();
+
+            const unitPowerInput = document.getElementById('unit-power');
+            const equipmentTextarea = document.getElementById('unit-equipment');
+            if (equipmentTextarea.value.includes('- Effectif doublé.')) {
+                unitPowerInput.dataset.originalCost = Math.round((unit.power || 0) / 2);
+            } else {
+                unitPowerInput.dataset.originalCost = '';
+            }
+            updateDoubleCostButtonState();
 
         } else if (target.classList.contains('delete-unit-btn')) {
             const index = parseInt(target.dataset.index);
