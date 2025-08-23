@@ -81,6 +81,149 @@ document.addEventListener('DOMContentLoaded', () => {
         return '';
     }
 
+    const assaultMissions = [
+        { id: 'communications_brouillees', name: 'Communications Brouillées', bonus: 'Bonus de Vainqueur : +1RP et 3 Fragments de Sombreroche.' },
+        { id: 'raid_site_fouilles', name: 'Raid contre le Site de Fouilles', bonus: 'Bonus de Vainqueur : Chaque unité qui a collecté au moins un Fragment de Sombreroche pendant la bataille gagne D3+3 XP.' },
+        { id: 'siege_quantique', name: 'Siège Quantique', bonus: 'Bonus de Vainqueur : Utiliser "Recharger et Ravitailler" jusqu\'à deux fois sans dépenser de RP.' },
+        { id: 'attaque_de_flanc', name: 'Attaque de Flanc', bonus: 'Bonus de Vainqueur : +6XP à une unité.' },
+        { id: 'terreur_insurmontable', name: 'Terreur Insurmontable', bonus: 'Bonus de Vainqueur : +2RP.' },
+        { id: 'archeotechnologie_instable', name: 'Archeotechnologie Instable', bonus: 'Bonus de Vainqueur : +1XP pour chaque unité à portée d\'un objectif.' },
+        { id: 'energies_polarisantes', name: 'Énergies Polarisantes', bonus: 'Bonus de Vainqueur : +3 Fragments de Sombreroche.' },
+        { id: 'au_milieu_des_miasmes', name: 'Au Milieu des Miasmes', bonus: 'Bonus de Vainqueur : Une unité supplémentaire peut être Promise à la Grandeur (Mettre en Honneur).' },
+        { id: 'fausses_informations', name: 'Fausses Informations', bonus: 'Bonus de Vainqueur : Une unité qui n\'a pas été détruite gagne un Trait de Bataille.' },
+        { id: 'paysage_torture', name: 'Paysage Torturé', bonus: 'Bonus de Vainqueur : Une unité non détruite gagne +5XP.' },
+        { id: 'affrontement_interdimensionnel', name: 'Affrontement Interdimensionnel', bonus: 'Bonus de Vainqueur : +3XP pour chaque unité se trouvant à portée d\'un objectif sur le territoire adverse.' },
+        { id: 'champ_de_negation', name: 'Champ de Négation', bonus: 'Bonus de Vainqueur : Deux unités supplémentaires peut être Promise à la Grandeur (Mettre en Honneur).' },
+        { id: 'dans_la_tombe', name: 'Dans la Tombe', bonus: 'Bonus de Vainqueur : Une unité non détruite gagne D3+3XP.' },
+        { id: 'eveil', name: 'Éveil', bonus: 'Bonus de Vainqueur : La prochaine fois que le joueur utilise "Vétérans Légendaires", elle coûte 1RP.' },
+        { id: 'acquisition_finale', name: 'Acquisition Finale', bonus: 'Bonus de Vainqueur : +5 Fragments de Sombreroche.' }
+    ];
+
+    async function awardExtraGlory(player, count) {
+        for (let i = 0; i < count; i++) {
+            const unitId = await showUnitChoiceModal('Mettre en Honneur', 'Choisissez une unité supplémentaire à mettre en honneur (+3 XP).', player.units || []);
+            if (unitId) {
+                const unit = player.units.find(u => u.id === unitId);
+                if (unit) {
+                    const prevXp = unit.xp || 0;
+                    unit.xp = prevXp + 3;
+                    unit.markedForGlory = (unit.markedForGlory || 0) + 1;
+                    logAction(player.id, `<b>${getUnitDisplayName(unit)}</b> a été mis à l'honneur (+3 XP).`, 'info', '🏅');
+                    const newRank = getRankFromXp(unit.xp);
+                    if (newRank !== getRankFromXp(prevXp)) {
+                        unit.pendingOptimization = true;
+                        showNotification(`${getUnitDisplayName(unit)} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
+                    }
+                }
+            }
+        }
+    }
+
+    async function applyAssaultMissionReward(player, missionId) {
+        const mission = assaultMissions.find(m => m.id === missionId);
+        if (!player || !mission) return;
+        switch (missionId) {
+            case 'communications_brouillees':
+                player.requisitionPoints++;
+                player.sombrerochePoints = (player.sombrerochePoints || 0) + 3;
+                logAction(player.id, `Mission "${mission.name}" : +1 PR et +3 Fragments de Sombreroche.`, 'info', '📡');
+                break;
+            case 'raid_site_fouilles':
+                showNotification('Attribuez D3+3 XP aux unités ayant collecté des Fragments de Sombreroche.', 'info');
+                logAction(player.id, `Mission "${mission.name}" : attribuez D3+3 XP aux unités éligibles.`, 'info', '📦');
+                break;
+            case 'siege_quantique':
+                showNotification('Vous pouvez utiliser "Recharger et Ravitailler" deux fois gratuitement.', 'info');
+                logAction(player.id, `Mission "${mission.name}" : deux utilisations gratuites de "Recharger et Ravitailler".`, 'info', '🔋');
+                break;
+            case 'attaque_de_flanc':
+                {
+                    const unitId = await showUnitChoiceModal('Attaque de Flanc', 'Choisissez une unité pour recevoir <b>+6 XP</b>.', player.units || []);
+                    if (unitId) {
+                        const unit = player.units.find(u => u.id === unitId);
+                        const prevXp = unit.xp || 0;
+                        unit.xp = prevXp + 6;
+                        logAction(player.id, `<b>${getUnitDisplayName(unit)}</b> gagne +6 XP (Attaque de Flanc).`, 'info', '🎖️');
+                        const newRank = getRankFromXp(unit.xp);
+                        if (newRank !== getRankFromXp(prevXp)) {
+                            unit.pendingOptimization = true;
+                            showNotification(`${getUnitDisplayName(unit)} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
+                        }
+                    }
+                }
+                break;
+            case 'terreur_insurmontable':
+                player.requisitionPoints += 2;
+                logAction(player.id, `Mission "${mission.name}" : +2 PR.`, 'info', '😱');
+                break;
+            case 'archeotechnologie_instable':
+                showNotification('Attribuez +1 XP à chaque unité à portée d\'un objectif.', 'info');
+                logAction(player.id, `Mission "${mission.name}" : +1 XP pour les unités à portée d'un objectif.`, 'info', '⚙️');
+                break;
+            case 'energies_polarisantes':
+                player.sombrerochePoints = (player.sombrerochePoints || 0) + 3;
+                logAction(player.id, `Mission "${mission.name}" : +3 Fragments de Sombreroche.`, 'info', '✨');
+                break;
+            case 'au_milieu_des_miasmes':
+                await awardExtraGlory(player, 1);
+                break;
+            case 'fausses_informations':
+                showNotification('Choisissez une unité non détruite et attribuez-lui un Trait de Bataille.', 'info');
+                logAction(player.id, `Mission "${mission.name}" : une unité non détruite gagne un Trait de Bataille.`, 'info', '📰');
+                break;
+            case 'paysage_torture':
+                {
+                    const unitId = await showUnitChoiceModal('Paysage Torturé', 'Choisissez une unité non détruite pour recevoir <b>+5 XP</b>.', player.units || []);
+                    if (unitId) {
+                        const unit = player.units.find(u => u.id === unitId);
+                        const prevXp = unit.xp || 0;
+                        unit.xp = prevXp + 5;
+                        logAction(player.id, `<b>${getUnitDisplayName(unit)}</b> gagne +5 XP (Paysage Torturé).`, 'info', '🎖️');
+                        const newRank = getRankFromXp(unit.xp);
+                        if (newRank !== getRankFromXp(prevXp)) {
+                            unit.pendingOptimization = true;
+                            showNotification(`${getUnitDisplayName(unit)} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
+                        }
+                    }
+                }
+                break;
+            case 'affrontement_interdimensionnel':
+                showNotification('Attribuez +3 XP à chaque unité à portée d\'un objectif sur le territoire adverse.', 'info');
+                logAction(player.id, `Mission "${mission.name}" : +3 XP aux unités à portée d'un objectif ennemi.`, 'info', '🌀');
+                break;
+            case 'champ_de_negation':
+                await awardExtraGlory(player, 2);
+                break;
+            case 'dans_la_tombe':
+                {
+                    const unitId = await showUnitChoiceModal('Dans la Tombe', 'Choisissez une unité non détruite pour recevoir <b>D3+3 XP</b>.', player.units || []);
+                    if (unitId) {
+                        const unit = player.units.find(u => u.id === unitId);
+                        const roll = Math.floor(Math.random() * 3) + 1;
+                        const gain = roll + 3;
+                        const prevXp = unit.xp || 0;
+                        unit.xp = prevXp + gain;
+                        logAction(player.id, `<b>${getUnitDisplayName(unit)}</b> gagne ${gain} XP (Dans la Tombe).`, 'info', '⚰️');
+                        const newRank = getRankFromXp(unit.xp);
+                        if (newRank !== getRankFromXp(prevXp)) {
+                            unit.pendingOptimization = true;
+                            showNotification(`${getUnitDisplayName(unit)} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
+                        }
+                        showNotification(`${getUnitDisplayName(unit)} gagne ${gain} XP (jet D3=${roll}).`, 'success');
+                    }
+                }
+                break;
+            case 'eveil':
+                player.veteranDiscount = true;
+                logAction(player.id, `Mission "${mission.name}" : prochaine utilisation de Vétérans Légendaires coûte 1 PR.`, 'info', '🌟');
+                break;
+            case 'acquisition_finale':
+                player.sombrerochePoints = (player.sombrerochePoints || 0) + 5;
+                logAction(player.id, `Mission "${mission.name}" : +5 Fragments de Sombreroche.`, 'info', '💎');
+                break;
+        }
+    }
+
     function getBattleScarOptionsHtml(player) {
         let options = '<option value="">Choisir une cicatrice...</option>';
         if (player && player.faction === 'Tyranids' && tyranidCrusadeRules.battleScars) {
@@ -921,11 +1064,13 @@ document.addEventListener('DOMContentLoaded', () => {
             attackButton.className = 'btn-primary';
             attackButton.textContent = 'Lancer l\'Assaut';
             attackButton.style.width = '100%';
-            attackButton.onclick = () => {
+            attackButton.onclick = async () => {
+                const missionId = await showMissionChoiceModal(assaultMissions);
+                if (!missionId) return;
                 if (planet.owner === 'neutral') {
-                    openNpcCombatModal(planet.id, 'conquer');
+                    openNpcCombatModal(planet.id, 'conquer', missionId);
                 } else {
-                    openPvpCombatModal(planet.id, 'conquer');
+                    openPvpCombatModal(planet.id, 'conquer', missionId);
                 }
             };
             actionsContainer.appendChild(attackButton);
@@ -1514,7 +1659,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    function openNpcCombatModal(planetId, attackIntent = 'conquer') {
+    function openNpcCombatModal(planetId, attackIntent = 'conquer', missionId = '') {
         const attacker = campaignData.players.find(p => p.id === mapViewingPlayerId);
         if (!attacker) return;
 
@@ -1548,6 +1693,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         npcCombatModal.dataset.planetId = planetId;
         npcCombatModal.dataset.attackIntent = attackIntent;
+        npcCombatModal.dataset.missionId = missionId;
         openModal(npcCombatModal);
     }
 
@@ -1649,7 +1795,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     logAction(attacker.id, `<b>Défaite</b> contre les PNJ sur <b>${planet.name}</b> (défendus par ${defender.name}). +1 PR.`, 'info', '⚔️');
                 }
             }
-        
+
+            const missionId = npcCombatModal.dataset.missionId;
+            const missionWinner = hasWon ? attacker : defender;
+            await applyAssaultMissionReward(missionWinner, missionId);
+
             defender.freeProbes = (defender.freeProbes || 0) + 1;
             defender.battles.npcGames = (defender.battles.npcGames || 0) + 1;
             logAction(defender.id, `A reçu <b>1 Sonde Gratuite</b> pour avoir incarné les PNJ contre <b>${attacker.name}</b>.`, 'info', '🛰️');
@@ -1670,7 +1820,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function openPvpCombatModal(planetId, attackIntent = 'conquer') {
+    function openPvpCombatModal(planetId, attackIntent = 'conquer', missionId = '') {
         const attacker = campaignData.players.find(p => p.id === mapViewingPlayerId);
         const system = campaignData.systems.find(s => s.planets.some(p => p.id === planetId));
         if (!attacker || !system) return;
@@ -1703,6 +1853,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pvpCombatModal.dataset.attackerId = attacker.id;
         pvpCombatModal.dataset.defenderId = defender.id;
         pvpCombatModal.dataset.attackIntent = attackIntent;
+        pvpCombatModal.dataset.missionId = missionId;
         openModal(pvpCombatModal);
     }
 
@@ -1827,13 +1978,17 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                     defender.battles.wins = (defender.battles.wins || 0) + 1;
                     attacker.battles.losses = (attacker.battles.losses || 0) + 1;
-        
+
                     logAction(defender.id, `<b>Victoire !</b> Vous avez défendu la planète <b>${planet.name}</b> contre <b>${attacker.name}</b>. +1 PR.`, 'conquest', '🛡️');
                     logAction(attacker.id, `<b>Défaite.</b> Votre assaut sur <b>${planet.name}</b> a été repoussé par <b>${defender.name}</b>. +1 PR.`, 'info', '⚔️');
                     showNotification(`Victoire de ${defender.name} ! La planète ${planet.name} a été défendue.`, "success");
                 }
             }
-    
+
+            const missionId = pvpCombatModal.dataset.missionId;
+            const missionWinner = attackerWon ? attacker : defender;
+            await applyAssaultMissionReward(missionWinner, missionId);
+
             saveData();
             closeModal(pvpCombatModal);
             renderPlanetarySystem(system.id);
