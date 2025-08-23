@@ -102,6 +102,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return options;
     }
 
+    function removeHiveWorldBonusFromPlanet(planet, oldOwnerId) {
+        if (!planet.hiveBonusUnitId) return;
+        const oldPlayer = campaignData.players.find(p => p.id === oldOwnerId);
+        if (oldPlayer) {
+            const unit = oldPlayer.units.find(u => u.id === planet.hiveBonusUnitId);
+            if (unit && unit.hivePlanetId === planet.id) {
+                delete unit.hivePlanetId;
+            }
+        }
+        delete planet.hiveBonusUnitId;
+    }
+
     function openPostBattleModal(player, planet = null) {
         if (!player) return;
         postBattleModal.dataset.playerId = player.id;
@@ -682,14 +694,29 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('double-unit-cost-btn').addEventListener('click', () => {
         const unitPowerInput = document.getElementById('unit-power');
         const currentCost = parseInt(unitPowerInput.value) || 0;
-        unitPowerInput.value = currentCost * 2;
-    
+
+        let newCost = currentCost * 2;
+        const player = campaignData.players[activePlayerIndex];
+        const unit = player && editingUnitIndex > -1 ? player.units[editingUnitIndex] : null;
+
+        if (unit && unit.hivePlanetId) {
+            newCost = Math.round(currentCost * 1.5);
+            const planet = getPlanetById(unit.hivePlanetId);
+            if (planet && planet.hiveBonusUnitId === unit.id) {
+                delete planet.hiveBonusUnitId;
+            }
+            delete unit.hivePlanetId;
+            showNotification('Bonus de Monde Ruche utilisé : coût doublé réduit de 50%.', 'success');
+        }
+
+        unitPowerInput.value = newCost;
+
         const equipmentTextarea = document.getElementById('unit-equipment');
         const note = "\n- Effectif doublé.";
         if (!equipmentTextarea.value.includes(note)) {
             equipmentTextarea.value = (equipmentTextarea.value || '').trim() + note;
         }
-    
+
         unitPowerInput.dispatchEvent(new Event('change', { bubbles: true }));
         equipmentTextarea.dispatchEvent(new Event('change', { bubbles: true }));
     });
@@ -1066,33 +1093,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    planetTypeForm.addEventListener('submit', (e) => {
+    planetTypeForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const systemId = document.getElementById('planet-system-id').value;
         const planetIndex = document.getElementById('planet-index').value;
         const system = campaignData.systems.find(s => s.id === systemId);
         const planet = system.planets[planetIndex];
         const oldOwner = planet.owner;
-    
+
         const newOwnerId = document.getElementById('planet-owner-select').value;
         planet.type = document.getElementById('planet-type-select').value;
         planet.name = document.getElementById('planet-name-input').value.trim() || planet.name;
         planet.owner = newOwnerId;
         planet.defense = (planet.owner === 'neutral') ? parseInt(document.getElementById('planet-defense-input').value) || 0 : 0;
-    
+
+        if (planet.type === 'Monde Ruche' && oldOwner !== newOwnerId) {
+            removeHiveWorldBonusFromPlanet(planet, oldOwner);
+            if (newOwnerId !== 'neutral') {
+                const newOwnerPlayer = campaignData.players.find(p => p.id === newOwnerId);
+                const eligibleUnits = (newOwnerPlayer.units || []).filter(u => u.role !== 'Personnage' && u.role !== 'Hero Epique');
+                if (eligibleUnits.length > 0) {
+                    const selectedUnitId = await showUnitChoiceModal(
+                        'Bonus de Monde Ruche',
+                        "Sélectionnez une unité non-personnage pour bénéficier d'une réduction de 50% lors du doublement de son effectif.",
+                        eligibleUnits
+                    );
+                    if (selectedUnitId) {
+                        const unit = newOwnerPlayer.units.find(u => u.id === selectedUnitId);
+                        unit.hivePlanetId = planet.id;
+                        planet.hiveBonusUnitId = unit.id;
+                    }
+                }
+            }
+        } else if (oldOwner !== newOwnerId) {
+            removeHiveWorldBonusFromPlanet(planet, oldOwner);
+        }
+
         if (oldOwner === 'neutral' && newOwnerId !== 'neutral') {
             const newOwnerPlayer = campaignData.players.find(p => p.id === newOwnerId);
             if (newOwnerPlayer) {
                 logAction(newOwnerPlayer.id, `A conquis la planète <b>${planet.name}</b> dans le système <b>${system.name}</b>.`, 'conquest', '🪐');
             }
         }
-    
+
         saveData();
         renderPlanetarySystem(systemId);
         closeModal(planetTypeModal);
-    
+
         if (newOwnerId !== 'neutral') {
             placePlayerSystemOnMap(newOwnerId);
+        }
+
+        if (!playerDetailView.classList.contains('hidden')) {
+            const activeId = campaignData.players[activePlayerIndex]?.id;
+            if (activeId === newOwnerId || activeId === oldOwner) {
+                renderPlayerDetail();
+            }
         }
     });
     

@@ -204,9 +204,13 @@ const renderOrderOfBattle = () => {
 
         const isDoubled = unit.equipment && unit.equipment.includes("- Effectif doublé.");
         const baseName = getUnitDisplayName(unit);
-        const displayName = isDoubled
-            ? `${baseName} <span class="doubled-indicator">x2</span>`
-            : baseName;
+        let displayName = baseName;
+        if (isDoubled) {
+            displayName += ' <span class="doubled-indicator">x2</span>';
+        }
+        if (unit.hivePlanetId) {
+            displayName += ' <span class="hive-bonus-indicator" title="Bonus Monde Ruche">🏭</span>';
+        }
 
         const rankCell = unit.pendingOptimization
             ? `<span class="blink">${rank}</span> <span class="optimisation-disponible">(Optimisation disponible)</span>`
