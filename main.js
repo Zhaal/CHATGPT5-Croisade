@@ -760,8 +760,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (target.classList.contains('delete-unit-btn')) {
             const index = parseInt(target.dataset.index);
             const player = campaignData.players[activePlayerIndex];
-            const unitName = player.units[index].name;
+            const unit = player.units[index];
+            const unitName = unit.name;
             if (await showConfirm("Supprimer l'unité", `Supprimer l'unité "<b>${unitName}</b>" de l'ordre de bataille ?`)) {
+                if (unit.hivePlanetId) {
+                    const planet = getPlanetById(unit.hivePlanetId);
+                    if (planet) {
+                        removeHiveWorldBonusFromPlanet(planet, player.id);
+                    }
+                }
                 player.units.splice(index, 1);
                 saveData();
                 renderPlayerDetail();
