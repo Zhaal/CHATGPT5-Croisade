@@ -201,7 +201,7 @@ const renderSainthoodBox = (player) => {
     const potentiaUnitId = player.sainthood.potentiaUnitId;
     if (potentiaUnitId) {
         const potentiaUnit = player.units.find(u => u.id === potentiaUnitId);
-        potentiaNameEl.textContent = potentiaUnit ? potentiaUnit.name : 'Unité introuvable';
+        potentiaNameEl.textContent = potentiaUnit ? getUnitDisplayName(potentiaUnit) : 'Unité introuvable';
         selectSaintBtn.classList.add('hidden');
         changeSaintBtn.classList.remove('hidden');
     } else {

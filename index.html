@@ -453,40 +453,32 @@
                     <input type="text" id="planet-name-input">
                 </div>
     
-                <details id="admin-section">
-                    <summary style="cursor: pointer; font-family: 'Cinzel', serif; color: var(--primary-color);">Paramètres Administratifs (Protégé)</summary>
-                    <div class="admin-unlock-panel" style="padding: 15px 0 0 0;">
+                <details id="admin-section" class="admin-protected hidden">
+                    <summary style="cursor: pointer; font-family: 'Cinzel', serif; color: var(--primary-color);">Paramètres Administratifs</summary>
+                    <div id="admin-controls" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
                         <div class="form-group">
-                            <label for="admin-password">Mot de passe :</label>
-                            <input type="password" id="admin-password" placeholder="Mdp est : warp">
+                            <label for="planet-type-select">Type de Monde :</label>
+                            <select id="planet-type-select">
+                                <option value="Monde Mort">Monde Mort</option>
+                                <option value="Monde Sauvage">Monde Sauvage</option>
+                                <option value="Agri-monde">Agri-monde</option>
+                                <option value="Monde Forge">Monde Forge</option>
+                                <option value="Monde Ruche">Monde Ruche</option>
+                                <option value="Monde Saint (relique)">Monde Saint (relique)</option>
+                            </select>
                         </div>
-                        <button type="button" id="unlock-admin-btn" class="btn-secondary">Déverrouiller</button>
-                        <button type="button" id="lock-admin-btn" class="btn-secondary hidden">Verrouiller</button>
-    
-                        <div id="admin-controls" class="hidden" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
-                            <div class="form-group">
-                                <label for="planet-type-select">Type de Monde :</label>
-                                <select id="planet-type-select">
-                                    <option value="Monde Mort">Monde Mort</option>
-                                    <option value="Monde Sauvage">Monde Sauvage</option>
-                                    <option value="Agri-monde">Agri-monde</option>
-                                    <option value="Monde Forge">Monde Forge</option>
-                                    <option value="Monde Ruche">Monde Ruche</option>
-                                    <option value="Monde Saint (relique)">Monde Saint (relique)</option>
-                                </select>
-                            </div>
-                             <div class="form-group">
-                                <label for="planet-owner-select">Propriétaire :</label>
-                                <select id="planet-owner-select"></select>
-                            </div>
-                            <div class="form-group" id="planet-defense-container">
-                                <label for="planet-defense-input">Points de Défense (PNJ):</label>
-                                <input type="number" id="planet-defense-input" min="0" step="50">
-                            </div>
-                            <hr>
-                            <button type="submit" class="btn-primary">Valider les Changements</button>
-                            <button type="button" id="randomize-planet-btn" class="btn-secondary" style="margin-left: 10px;">Randomiser Planète (2 RP)</button>
+                         <div class="form-group">
+                            <label for="planet-owner-select">Propriétaire :</label>
+                            <select id="planet-owner-select"></select>
                         </div>
+                        <div class="form-group" id="planet-defense-container">
+                            <label for="planet-defense-input">Points de Défense (PNJ):</label>
+                            <input type="number" id="planet-defense-input" min="0" step="50">
+                        </div>
+        
+                        <hr>
+                        <button type="submit" class="btn-primary">Valider les Changements</button>
+                        <button type="button" id="randomize-planet-btn" class="btn-secondary" style="margin-left: 10px;">Randomiser Planète (2 RP)</button>
                     </div>
                 </details>
     

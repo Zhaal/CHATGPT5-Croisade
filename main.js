@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
             unitDiv.innerHTML = `
                 <div class="unit-header">
                     <span class="unit-icon">✠</span>
-                    <h4>${unit.name}</h4>
+                    <h4>${getUnitDisplayName(unit)}</h4>
                 </div>
                 <div class="post-battle-grid">
                     <div class="stat-box present">
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         markHonorSelect.innerHTML = '<option value="">-- Choisir une unité --</option>';
         (player.units || []).forEach(unit => {
-            markHonorSelect.innerHTML += `<option value="${unit.id}">${unit.name}</option>`;
+            markHonorSelect.innerHTML += `<option value="${unit.id}">${getUnitDisplayName(unit)}</option>`;
         });
 
         openModal(postBattleModal);
@@ -205,31 +205,31 @@ document.addEventListener('DOMContentLoaded', () => {
             const prevXp = unit.xp || 0;
             if (present) {
                 unit.xp = (unit.xp || 0) + 1;
-                logAction(player.id, `<b>${unit.name}</b> a participé à la bataille (+1 XP).`, 'info', '🎖️');
+                logAction(player.id, `<b>${getUnitDisplayName(unit)}</b> a participé à la bataille (+1 XP).`, 'info', '🎖️');
             }
             if (kills > 0) {
                 const previousKills = unit.kills || 0;
                 unit.kills = previousKills + kills;
                 unit.markedForGlory = (unit.markedForGlory || 0) + kills;
-                logAction(player.id, `<b>${unit.name}</b> a réalisé ${kills} destructions.`, 'info', '☠️');
+                logAction(player.id, `<b>${getUnitDisplayName(unit)}</b> a réalisé ${kills} destructions.`, 'info', '☠️');
 
                 const prevBonusXp = Math.floor(previousKills / 3);
                 const newBonusXp = Math.floor(unit.kills / 3);
                 const bonusXp = newBonusXp - prevBonusXp;
                 if (bonusXp > 0) {
                     unit.xp = (unit.xp || 0) + bonusXp;
-                    logAction(player.id, `<b>${unit.name}</b> gagne ${bonusXp} XP pour ses destructions.`, 'info', '⚔️');
+                    logAction(player.id, `<b>${getUnitDisplayName(unit)}</b> gagne ${bonusXp} XP pour ses destructions.`, 'info', '⚔️');
                 }
             }
             if (destroyed && roll === 1 && scarName) {
                 const desc = findUpgradeDescription ? findUpgradeDescription(scarName) : '';
                 unit.battleScars = (unit.battleScars || '').trim() + `\n- ${scarName}${desc ? ': ' + desc : ''}`;
-                logAction(player.id, `<b>${unit.name}</b> a subi la cicatrice <i>${scarName}</i>.`, 'info', '💥');
+                logAction(player.id, `<b>${getUnitDisplayName(unit)}</b> a subi la cicatrice <i>${scarName}</i>.`, 'info', '💥');
             }
             const newRank = getRankFromXp(unit.xp);
             if (newRank !== getRankFromXp(prevXp)) {
                 unit.pendingOptimization = true;
-                showNotification(`${unit.name} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
+                showNotification(`${getUnitDisplayName(unit)} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
             }
         });
 
@@ -240,11 +240,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const prevXp = honouredUnit.xp || 0;
                 honouredUnit.xp = prevXp + 3;
                 honouredUnit.markedForGlory = (honouredUnit.markedForGlory || 0) + 1;
-                logAction(player.id, `<b>${honouredUnit.name}</b> a été mis à l'honneur (+3 XP).`, 'info', '🏅');
+                logAction(player.id, `<b>${getUnitDisplayName(honouredUnit)}</b> a été mis à l'honneur (+3 XP).`, 'info', '🏅');
                 const newRank = getRankFromXp(honouredUnit.xp);
                 if (newRank !== getRankFromXp(prevXp)) {
                     honouredUnit.pendingOptimization = true;
-                    showNotification(`${honouredUnit.name} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
+                    showNotification(`${getUnitDisplayName(honouredUnit)} atteint le rang ${newRank} ! Trait ou Relique (1 PR) disponible.`, 'info');
                 }
             }
         }
@@ -338,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (selectedUnit) {
                     selectedUnit.relic = (selectedUnit.relic ? selectedUnit.relic + '\n' : '') + `Relique de ${planetToUpdate.name}`;
                     planetToUpdate.relicAssignedToUnitId = selectedUnit.id;
-                    logAction(player.id, `La relique de <b>${planetToUpdate.name}</b> a été assignée à <b>${selectedUnit.name}</b>.`, 'info', '✨');
+                    logAction(player.id, `La relique de <b>${planetToUpdate.name}</b> a été assignée à <b>${getUnitDisplayName(selectedUnit)}</b>.`, 'info', '✨');
                     saveData();
                     renderPlanetBonusModal(); // Refresh the modal to show the change
                 }
@@ -708,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editingUnitIndex = parseInt(target.dataset.index);
             const player = campaignData.players[activePlayerIndex];
             const unit = player.units[editingUnitIndex];
-            unitModalTitle.textContent = `Modifier ${unit.name}`;
+            unitModalTitle.textContent = `Modifier ${getUnitDisplayName(unit)}`;
             openUnitModal();
             unitForm.dataset.initialXp = unit.xp || 0;
             unitForm.dataset.initialGlory = unit.markedForGlory || 0;
@@ -929,21 +929,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // ====================== FIN DU NOUVEL AJOUT ======================
 
     function openPlanetDetailsModal(planet, systemId, planetIndex) {
-        const adminControls = document.getElementById('admin-controls');
         const adminSectionDetails = document.getElementById('admin-section');
-        const adminPasswordInput = document.getElementById('admin-password');
-        const unlockBtn = document.getElementById('unlock-admin-btn');
-        const lockBtn = document.getElementById('lock-admin-btn');
-        const adminPasswordGroup = adminPasswordInput.parentElement;
-
-        adminControls.classList.add('hidden');
-        adminPasswordInput.value = '';
         if (adminSectionDetails) {
-            adminSectionDetails.open = false;
+            adminSectionDetails.open = isAdminMode;
         }
-        adminPasswordGroup.classList.remove('hidden');
-        unlockBtn.classList.remove('hidden');
-        lockBtn.classList.add('hidden');
 
         document.getElementById('planet-system-id').value = systemId;
         document.getElementById('planet-index').value = planetIndex;
@@ -958,6 +947,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ownerSelect.value = planet.owner;
         document.getElementById('planet-defense-input').value = planet.defense || 0;
         document.getElementById('planet-type-modal-title').textContent = `Détails de ${planet.name} (${planet.type})`;
+
+        if (typeof updateAdminModeUI === 'function') updateAdminModeUI();
 
         const deadWorldContainer = document.getElementById('dead-world-link-container');
         const deadWorldSelect = document.getElementById('dead-world-link-select');
@@ -1105,39 +1096,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    document.getElementById('unlock-admin-btn').addEventListener('click', () => {
-        const passwordInput = document.getElementById('admin-password');
-        const adminControls = document.getElementById('admin-controls');
-        const unlockBtn = document.getElementById('unlock-admin-btn');
-        const lockBtn = document.getElementById('lock-admin-btn');
-        const adminPasswordGroup = passwordInput.parentElement;
-    
-        if (passwordInput.value === 'warp') {
-            adminControls.classList.remove('hidden');
-            adminPasswordGroup.classList.add('hidden');
-            unlockBtn.classList.add('hidden');
-            lockBtn.classList.remove('hidden');
-            showNotification('Paramètres administratifs déverrouillés.', 'success');
-            passwordInput.value = '';
-        } else {
-            showNotification('Mot de passe incorrect.', 'error');
-            adminControls.classList.add('hidden');
-        }
-    });
-    
-    document.getElementById('lock-admin-btn').addEventListener('click', () => {
-        const adminControls = document.getElementById('admin-controls');
-        const passwordInput = document.getElementById('admin-password');
-        const unlockBtn = document.getElementById('unlock-admin-btn');
-        const lockBtn = document.getElementById('lock-admin-btn');
-        const adminPasswordGroup = passwordInput.parentElement;
-    
-        adminControls.classList.add('hidden');
-        adminPasswordGroup.classList.remove('hidden');
-        unlockBtn.classList.remove('hidden');
-        lockBtn.classList.add('hidden');
-        showNotification('Paramètres administratifs verrouillés.', 'info');
-    });
 
     document.getElementById('randomize-planet-btn').addEventListener('click', async () => {
         const viewingPlayer = campaignData.players.find(p => p.id === mapViewingPlayerId);
@@ -1453,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             addUpgradeToUnitData(unit, 'unit-honours', upgradeName, `(${upgradeCost} pts)`, "Optimisation: ");
 
-            logAction(player.id, `Achète l'optimisation <i>${upgradeName}</i> pour <b>${unit.name}</b> (1 PR).`, 'info', '⚙️');
+            logAction(player.id, `Achète l'optimisation <i>${upgradeName}</i> pour <b>${getUnitDisplayName(unit)}</b> (1 PR).`, 'info', '⚙️');
             
             saveData();
             renderPlayerDetail();
@@ -1944,19 +1902,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const confirmed = await showConfirm(
             "Confirmer la Dégénérescence",
-            `Voulez-vous que l'unité "<b>${unit.name}</b>" succombe à ses mutations pour <b>${cost} PR</b> ?<br><br>Elle sera remplacée par une unité de <b>Rejetons du Chaos</b>, conservant son XP, ses Honneurs et ses Séquelles. Le coût en points sera mis à jour.`
+            `Voulez-vous que l'unité "<b>${getUnitDisplayName(unit)}</b>" succombe à ses mutations pour <b>${cost} PR</b> ?<br><br>Elle sera remplacée par une unité de <b>Rejetons du Chaos</b>, conservant son XP, ses Honneurs et ses Séquelles. Le coût en points sera mis à jour.`
         );
 
         if (confirmed) {
             player.requisitionPoints -= cost;
 
-            const oldName = unit.name;
+            const oldName = getUnitDisplayName(unit);
             
             unit.name = "Rejetons du Chaos de Nurgle";
             unit.power = 80;
             unit.role = "Bête";
 
-            logAction(player.id, `L'unité "<b>${oldName}</b>" a succombé à la Dégénérescence et est devenue une unité de <b>Rejetons du Chaos</b> pour 1 PR.`, 'info', '☣️');
 
             saveData();
             renderPlayerDetail();
@@ -1979,7 +1936,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const confirmed = await showConfirm(
             "Confirmer l'Illumination par la Douleur",
-            `Voulez-vous dépenser <b>${cost} PR</b> pour que l'unité "<b>${unit.name}</b>" ignore ses Séquelles de Combat en échange d'un Honneur de Bataille ?<br><br>Toutes les Séquelles de cette unité seront effacées.`
+            `Voulez-vous dépenser <b>${cost} PR</b> pour que l'unité "<b>${getUnitDisplayName(unit)}</b>" ignore ses Séquelles de Combat en échange d'un Honneur de Bataille ?<br><br>Toutes les Séquelles de cette unité seront effacées.`
         );
 
         if (confirmed) {
@@ -1987,7 +1944,7 @@ document.addEventListener('DOMContentLoaded', () => {
             unit.battleScars = ""; 
             document.getElementById('unit-scars').value = ""; 
 
-            let logMessage = `A utilisé 'L'Illumination par la Douleur' sur <b>${unit.name}</b> pour 1 PR.`;
+            let logMessage = `A utilisé 'L'Illumination par la Douleur' sur <b>${getUnitDisplayName(unit)}</b> pour 1 PR.`;
             let notificationMessage = "Séquelles effacées ! N'oubliez pas de choisir un Honneur de Bataille.";
 
             if (unit.id === player.sainthood.potentiaUnitId) {

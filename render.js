@@ -203,9 +203,10 @@ const renderOrderOfBattle = () => {
         const row = document.createElement('tr');
 
         const isDoubled = unit.equipment && unit.equipment.includes("- Effectif doublé.");
+        const baseName = getUnitDisplayName(unit);
         const displayName = isDoubled
-            ? `${unit.name} <span class="doubled-indicator">x2</span>`
-            : unit.name;
+            ? `${baseName} <span class="doubled-indicator">x2</span>`
+            : baseName;
 
         const rankCell = unit.pendingOptimization
             ? `<span class="blink">${rank}</span> <span class="optimisation-disponible">(Optimisation disponible)</span>`
@@ -1048,7 +1049,7 @@ function renderPlanetBonusModal() {
             let statusHtml;
             if (planet.relicAssignedToUnitId) {
                 const unit = player.units.find(u => u.id === planet.relicAssignedToUnitId);
-                statusHtml = `Relique assignée à : <strong style="color: var(--friendly-color);">${unit ? unit.name : 'Unité inconnue'}</strong>`;
+                statusHtml = `Relique assignée à : <strong style="color: var(--friendly-color);">${unit ? getUnitDisplayName(unit) : 'Unité inconnue'}</strong>`;
             } else {
                 statusHtml = `<button class="btn-secondary assign-relic-btn" data-planet-id="${planet.id}">Attribuer la Relique</button>`;
             }
