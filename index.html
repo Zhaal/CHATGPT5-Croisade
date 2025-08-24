@@ -7,30 +7,30 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Metal+Mania&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <nav class="top-nav">
+        <h1>Nexus Crusade Tracker</h1>
+        <div class="nav-actions">
+            <button id="export-btn" class="btn-primary">Exporter la Campagne (JSON)</button>
+            <button id="import-btn" class="btn-primary">Importer la Campagne (JSON)</button>
+            <input type="file" id="import-file" accept=".json" style="display: none;">
+            <button id="save-online-btn" class="btn-primary">Sauvegarder en ligne</button>
+            <button id="load-online-btn" class="btn-primary">Charger en ligne</button>
+            <button id="fullscreen-btn" class="btn-primary">Plein écran</button>
+        </div>
+    </nav>
 
     <div class="container">
-        <header>
-            <h1>Nexus Crusade Tracker</h1>
-            <div class="campaign-controls">
-                <button id="export-btn">Exporter la Campagne (JSON)</button>
-                <button id="import-btn">Importer la Campagne (JSON)</button>
-                <input type="file" id="import-file" accept=".json" style="display: none;">
-                <button id="save-online-btn">Sauvegarder en ligne</button>
-                <button id="load-online-btn">Charger en ligne</button>
-                <button id="fullscreen-btn">Plein écran</button>
-            </div>
-            <p class="storage-warning">
-              ⚠️ <strong>Attention :</strong> Toutes les données sont sauvegardées localement dans votre navigateur.
-                Utilisez l'export ou la sauvegarde en ligne pour créer des sauvegardes !
-            </p>
-            <div class="management-controls">
-                <button id="reset-campaign-btn" class="btn-danger">Explosion du Warp (Réinitialiser)</button>
-                <span id="galaxy-format-display" style="color: var(--text-muted-color); align-self: center;"></span>
-                </div>
-        </header>
+        <p class="storage-warning">
+            ⚠️ <strong>Attention :</strong> Toutes les données sont sauvegardées localement dans votre navigateur.
+            Utilisez l'export ou la sauvegarde en ligne pour créer des sauvegardes !
+        </p>
+        <div class="management-controls">
+            <button id="reset-campaign-btn" class="btn-danger">Explosion du Warp (Réinitialiser)</button>
+            <span id="galaxy-format-display" style="color: var(--text-muted-color); align-self: center;"></span>
+        </div>
 
         <main id="player-list-view">
             <h2>Joueurs de la Campagne</h2>

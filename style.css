@@ -1,118 +1,101 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap');
-/* --- Police et Thème Général --- */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@300;400;700&display=swap');
+
+/* --- Modern Theme and Layout --- */
 :root {
-    --primary-color: #a37c27; /* Or/Bronze */
-    --friendly-color: #3cb371; /* Vert - Ajouté pour le statut "ami" */
-    --background-color: #1e1e1e;
-    --surface-color: #2a2a2a;
-    --text-color: #e0e0e0;
-    --text-muted-color: #888;
-    --border-color: #444;
-    --danger-color: #b33a3a;
-    --warning-color: #ffcc00; /* Jaune pour les systèmes neutres */
-    --probed-color: #3498db; /* NOUVEAU: Bleu pour les systèmes sondés */
-    --gateway-color: #ff8c00; /* NOUVEAU: Orange pour les portails */
+    --primary-color: #3b82f6;
+    --friendly-color: #16a34a;
+    --background-color: #f5f7fa;
+    --surface-color: #ffffff;
+    --text-color: #1f2937;
+    --text-muted-color: #6b7280;
+    --border-color: #e5e7eb;
+    --danger-color: #dc2626;
+    --warning-color: #f59e0b;
+    --probed-color: #0ea5e9;
+    --gateway-color: #9333ea;
 }
 
 body {
-    font-family: sans-serif;
-    background-color: #000;
-    background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png');
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--background-color);
     color: var(--text-color);
     margin: 0;
-    padding: 20px;
-}
-
-@keyframes title-pulse {
-    0% {
-        text-shadow: 1px 1px 2px black, 0 0 5px var(--primary-color);
-    }
-    50% {
-        text-shadow: 1px 1px 2px black, 0 0 20px var(--primary-color);
-    }
-    100% {
-        text-shadow: 1px 1px 2px black, 0 0 5px var(--primary-color);
-    }
-}
-
-h1 {
-    animation: title-pulse 2s infinite;
+    padding: 0;
 }
 
 h1, h2, h3 {
-    font-family: 'Metal Mania', 'Cinzel', serif;
+    font-family: 'Orbitron', sans-serif;
     color: var(--primary-color);
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-    text-shadow: 1px 1px 2px black, 0 0 5px var(--primary-color);
+    text-transform: none;
+    letter-spacing: 0.5px;
+    text-shadow: none;
 }
 
-h4 {
-     font-family: 'Cinzel', serif;
+.top-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 30px;
+    background-color: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.top-nav h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.nav-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .container {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 20px auto;
     background-color: var(--surface-color);
-    padding: 20px;
-    border: 3px solid #000;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.5);
-    border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='75' height='75'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23c0953c' offset='0%25'/%3E%3Cstop stop-color='%23a37c27' offset='50%25'/%3E%3Cstop stop-color='%237c5c1a' offset='100%25'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='transparent' stroke-width='10' stroke='url(%23g)'/%3E%3C/svg%3E") 10;
-}
-
-hr {
-    border: none;
-    border-top: 1px solid var(--border-color);
-    margin: 20px 0;
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* --- En-tête et Contrôles de Campagne --- */
-header {
-    text-align: center;
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 15px;
-    margin-bottom: 20px;
+    padding: 30px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border-radius: 8px;
 }
 
 .storage-warning {
-    background-color: #4d4432;
-    border: 1px solid var(--primary-color);
+    background-color: #fef3c7;
+    border: 1px solid var(--warning-color);
+    color: var(--text-color);
     padding: 10px;
     font-size: 0.9em;
     max-width: 800px;
-    margin: 15px auto 0 auto;
+    margin: 15px auto;
+    border-radius: 4px;
 }
 
 .management-controls {
-    margin-top: 15px;
+    margin: 20px 0;
     display: flex;
-    justify-content: center;
-    gap: 15px;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
-/* --- Boutons et Formulaires --- */
 button, .btn-primary {
     background-color: var(--primary-color);
-    color: white;
-    border: 1px solid #7c5c1a;
-    padding: 10px 15px;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
     cursor: pointer;
-    text-transform: uppercase;
-    font-family: 'Cinzel', serif;
-    transition: background-color 0.2s;
-    border-radius: 3px;
+    font-family: 'Roboto', sans-serif;
+    text-transform: none;
+    border-radius: 6px;
+    transition: background-color 0.2s, transform 0.2s;
 }
 
 button:hover, .btn-primary:hover {
-    background-color: #c0953c;
-    box-shadow: 0 0 10px #c0953c, 0 0 15px #c0953c;
+    background-color: #2563eb;
     transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 button:disabled {
@@ -121,31 +104,45 @@ button:disabled {
 }
 
 button.btn-secondary, .btn-secondary {
-    background-color: #555;
-    border-color: #333;
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
 }
+
 button.btn-secondary:hover {
-    background-color: #777;
+    background-color: #f3f4f6;
 }
 
 button.btn-danger, .btn-danger {
     background-color: var(--danger-color);
-    border-color: #8e2b2b;
 }
+
 button.btn-danger:hover {
-    background-color: #d14f4f;
+    background-color: #b91c1c;
 }
 
 input[type="text"], input[type="number"], select, textarea {
     width: 100%;
-    padding: 8px;
-    background-color: var(--background-color);
+    padding: 6px 10px;
     border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--surface-color);
     color: var(--text-color);
-    border-radius: 3px;
-    box-sizing: border-box;
-    margin-top: 4px;
+    font-family: 'Roboto', sans-serif;
 }
+
+.hidden {
+    display: none !important;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 20px 0;
+}
+
+/* --- En-tête et Contrôles de Campagne --- */
+/* header replaced by .top-nav */
 
 label {
     display: block;
@@ -182,20 +179,19 @@ label {
 }
 
 .player-card {
-    background-color: #333;
+    background-color: var(--surface-color);
     padding: 15px;
-    border: 2px solid #000;
+    border: 1px solid var(--border-color);
     transition: all 0.2s;
     display: flex;
     flex-direction: column;
-    box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
-    border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='75' height='75'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23a37c27' offset='0%25'/%3E%3Cstop stop-color='%237c5c1a' offset='50%25'/%3E%3Cstop stop-color='%23a37c27' offset='100%25'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='transparent' stroke-width='10' stroke='url(%23g)'/%3E%3C/svg%3E") 5;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .player-card:hover {
     border-color: var(--primary-color);
     transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .player-card h3 {
@@ -251,17 +247,17 @@ label {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 15px;
-    background-color: #1a1a1a;
+    background-color: var(--surface-color);
     padding: 15px;
     border: 1px solid var(--border-color);
 }
 .info-box {
-    background-color: #2a2a2a;
+    background-color: var(--surface-color);
     padding: 10px;
-    border: 1px solid #333;
+    border: 1px solid var(--border-color);
 }
 .info-box strong { color: var(--primary-color); }
-.info-box .stat-value { font-weight: bold; color: white; margin: 0 5px;}
+.info-box .stat-value { font-weight: bold; color: var(--text-color); margin: 0 5px;}
 .info-box input { display: inline-block; width: 80px; margin-right: 5px; }
 .tally-btn { padding: 2px 8px; margin-left: 5px; font-size: 0.8em; }
 
