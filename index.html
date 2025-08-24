@@ -3,43 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Crusade Tracker</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Nexus Crusade Command</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Metal+Mania&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>Nexus Crusade Tracker</h1>
-            <div class="campaign-controls">
-                <button id="export-btn">Exporter la Campagne (JSON)</button>
-                <button id="import-btn">Importer la Campagne (JSON)</button>
+    <div id="command-interface" class="imperial-layout">
+        <header class="imperial-header">
+            <h1><i class="fas fa-skull-crossbones"></i> Nexus Crusade Command</h1>
+            <nav class="control-panel">
+                <button id="export-btn" class="btn-icon"><i class="fas fa-file-export"></i> Exporter</button>
+                <button id="import-btn" class="btn-icon"><i class="fas fa-file-import"></i> Importer</button>
                 <input type="file" id="import-file" accept=".json" style="display: none;">
-                <button id="save-online-btn">Sauvegarder en ligne</button>
-                <button id="load-online-btn">Charger en ligne</button>
-                <button id="fullscreen-btn">Plein écran</button>
-            </div>
+                <button id="save-online-btn" class="btn-icon"><i class="fas fa-save"></i> Sauvegarder</button>
+                <button id="load-online-btn" class="btn-icon"><i class="fas fa-cloud-download-alt"></i> Charger</button>
+                <button id="fullscreen-btn" class="btn-icon"><i class="fas fa-expand"></i> Plein écran</button>
+            </nav>
             <p class="storage-warning">
-              ⚠️ <strong>Attention :</strong> Toutes les données sont sauvegardées localement dans votre navigateur.
+              <i class="fas fa-triangle-exclamation"></i> <strong>Attention :</strong> Toutes les données sont sauvegardées localement dans votre navigateur.
                 Utilisez l'export ou la sauvegarde en ligne pour créer des sauvegardes !
             </p>
             <div class="management-controls">
-                <button id="reset-campaign-btn" class="btn-danger">Explosion du Warp (Réinitialiser)</button>
+                <button id="reset-campaign-btn" class="btn-danger"><i class="fas fa-bomb"></i> Explosion du Warp</button>
                 <span id="galaxy-format-display" style="color: var(--text-muted-color); align-self: center;"></span>
-                </div>
+            </div>
         </header>
 
-        <main id="player-list-view">
+        <main id="player-list-view" class="panel">
             <h2>Joueurs de la Campagne</h2>
-            <div id="player-list">
-                </div>
-            <button id="add-player-btn" class="btn-primary">Ajouter un Joueur</button>
+            <div id="player-list"></div>
+            <button id="add-player-btn" class="btn-primary"><i class="fas fa-user-plus"></i> Ajouter un Joueur</button>
         </main>
 
-        <section id="player-detail-view" class="hidden">
+        <section id="player-detail-view" class="panel hidden">
             <div class="roster-header">
                 <h3>Crusade Force Roster</h3>
                 <span>
